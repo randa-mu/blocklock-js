@@ -1,6 +1,6 @@
 import Ganache from "ganache";
 import { ZeroAddress, ethers } from "ethers";
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
+import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
 
 let server: any;
 let provider: ethers.JsonRpcProvider;
