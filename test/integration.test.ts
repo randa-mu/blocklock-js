@@ -43,6 +43,6 @@ describe("Blockchain Integration Tests with Ganache", () => {
   });
 
   it("should get valid address for signer", async () => {
-    expect(await wallet.getAddress()).not.toBe(ZeroAddress); // Default Ganache chainId
+    expect(await wallet.getAddress()).not.toBe(ZeroAddress);
   });
 });
