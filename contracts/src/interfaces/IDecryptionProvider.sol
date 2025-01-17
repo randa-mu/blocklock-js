@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {TypesLib} from "./TypesLib.sol";
+import {TypesLib} from "../libraries/TypesLib.sol";
 
 /// @notice Smart contract that stores and conditionally decrypts encrypted messages / data
 interface IDecryptionProvider {

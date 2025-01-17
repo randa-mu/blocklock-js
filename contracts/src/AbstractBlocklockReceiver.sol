@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {IBlocklockReceiver} from "./IBlocklockReceiver.sol";
+import {IBlocklockReceiver} from "./interfaces/IBlocklockReceiver.sol";
 
 abstract contract AbstractBlocklockReceiver is IBlocklockReceiver {
     address public immutable DECRYPTION_PROVIDER = 0x11045878Ed62Ec3aCC91cE36A46F4EF61d4616e1;

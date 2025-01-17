@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import "./TypesLib.sol";
+import {TypesLib} from "../libraries/TypesLib.sol";
 
 interface IBlocklockProvider {
     /**

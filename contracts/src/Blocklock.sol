@@ -1,8 +1,8 @@
 pragma solidity 0.8.24;
 
-import "./IBlocklockProvider.sol";
-import "./ISignatureScheme.sol";
-import "./IDecryptionProvider.sol";
+import "./interfaces/IBlocklockProvider.sol";
+import "./interfaces/ISignatureScheme.sol";
+import "./interfaces/IDecryptionProvider.sol";
 
 library Blocklock {
     function contractAddress() public pure returns (address){
