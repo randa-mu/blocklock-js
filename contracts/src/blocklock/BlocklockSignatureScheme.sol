@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {BLS} from "./libraries/BLS.sol";
-import {ISignatureScheme} from "./interfaces/ISignatureScheme.sol";
+import {BLS} from "../libraries/BLS.sol";
+import {ISignatureScheme} from "../interfaces/ISignatureScheme.sol";
 
 contract BlocklockSignatureScheme is ISignatureScheme {
     using BLS for bytes;

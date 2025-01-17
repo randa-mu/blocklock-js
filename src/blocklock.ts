@@ -29,13 +29,12 @@ export const BLOCKLOCK_DEFAULT_PUBLIC_KEY = {
     },
 }
 
-const defaultContractAddress = "0xfd1bf3fcbf2e250abff4a61670dfa3ce740453e5"
 const iface = BlocklockSender__factory.createInterface()
 
 export class Blocklock {
     private blocklockSender: BlocklockSender
 
-    constructor(provider: Signer | Provider, private readonly contractAddress: string = defaultContractAddress) {
+    constructor(provider: Signer | Provider, private readonly contractAddress: string) {
         this.blocklockSender = BlocklockSender__factory.connect(contractAddress, provider)
     }
 
