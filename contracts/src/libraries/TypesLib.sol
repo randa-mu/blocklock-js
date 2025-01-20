@@ -12,7 +12,7 @@ library TypesLib {
         string schemeID; // signature scheme id, e.g., "BN254", "BLS12-381", "TESS"
         address callback; // the requester address to call back. Must implement ISignatureReceiver interface to support the required callback
     }
-    
+
     // Blocklock request stores details needed to generate blocklock decryption keys
     struct BlocklockRequest {
         uint256 decryptionRequestID;
