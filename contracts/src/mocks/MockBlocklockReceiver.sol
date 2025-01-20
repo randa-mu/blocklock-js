@@ -23,7 +23,7 @@ contract MockBlocklockReceiver is IBlocklockReceiver {
         timelock = IBlocklockSender(timelockContract);
     }
 
-    function generateTimelockRequest(uint256 decryptionBlockNumber, TypesLib.Ciphertext calldata encryptedData) external returns (uint256) {
+    function createTimelockRequest(uint256 decryptionBlockNumber, TypesLib.Ciphertext calldata encryptedData) external returns (uint256) {
         requestId = timelock.requestBlocklock(decryptionBlockNumber, encryptedData);
         return requestId;
     }
