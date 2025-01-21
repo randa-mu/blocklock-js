@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run clean && npm run build:js && npm run build:generate && npm run build:types",
-    "build:generate": "mkdir -p src/generated && npx typechain --target ethers-v6 --out-dir src/generated './contracts/out/BlocklockSender.sol/*.json'",
+    "build:generate": "mkdir -p src/generated && npx typechain --target ethers-v6 --out-dir src/generated './contracts/out/*.sol/*.json'",
     "build:js": "esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=index.js",
     "build:types": "tsc --emitDeclarationOnly",
     "clean": "rm -rf index.js index.d.ts",
