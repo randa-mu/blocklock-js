@@ -30,6 +30,8 @@ describe("Blockchain Integration Tests with Ganache", () => {
 
     // Create a wallet using the first account
     wallet = accounts[0];
+
+    console.log(wallet)
   });
 
   afterAll(async () => {

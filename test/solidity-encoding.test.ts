@@ -22,9 +22,6 @@ describe("Solidity Encoding", () => {
   it("should encode and decode uint256", () => {
     const value = 12345;
     const encoded = encoder.encodeUint256(value);
-    console.log(encoded);
-    console.log(getBytes(encoded));
-    console.log(uint8ArrayToHex(getBytes(encoded)));
     const decoded = decoder.decodeUint256(encoded);
     expect(decoded).toBe(BigInt(value));
   });
