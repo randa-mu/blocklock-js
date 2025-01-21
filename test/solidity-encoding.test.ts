@@ -1,6 +1,13 @@
 import {describe, it, expect, beforeAll} from "@jest/globals"
-import { ethers } from "ethers";
+import { ethers, getBytes } from "ethers";
 import { SolidityEncoder, SolidityDecoder} from "../src";
+
+function uint8ArrayToHex(uint8Array: Uint8Array) {
+  const hexString = Array.from(uint8Array)
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
+  return '0x' + hexString;
+}
 
 describe("Solidity Encoding", () => {
   let encoder: SolidityEncoder;
@@ -15,7 +22,18 @@ describe("Solidity Encoding", () => {
   it("should encode and decode uint256", () => {
     const value = 12345;
     const encoded = encoder.encodeUint256(value);
+    console.log(encoded);
+    console.log(getBytes(encoded));
+    console.log(uint8ArrayToHex(getBytes(encoded)));
     const decoded = decoder.decodeUint256(encoded);
+    expect(decoded).toBe(BigInt(value));
+  });
+
+  it("should encode, convert to uint8Array and decode uint256", () => {
+    const value = 12345;
+    const encoded = encoder.encodeUint256(value);
+    const encodedUint8Array = uint8ArrayToHex(getBytes(encoded));
+    const decoded = decoder.decodeUint256(encodedUint8Array);
     expect(decoded).toBe(BigInt(value));
   });
 
