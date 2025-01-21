@@ -6,7 +6,7 @@ import {TypesLib} from "../libraries/TypesLib.sol";
 import {BytesLib} from "../libraries/BytesLib.sol";
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {Multicall} from "../Multicall.sol";
+import {Multicall} from "@openzeppelin/contracts/utils/Multicall.sol";
 
 import {ISignatureReceiver} from "../interfaces/ISignatureReceiver.sol";
 import {ISignatureSender} from "../interfaces/ISignatureSender.sol";

@@ -1,6 +1,7 @@
 import {describe, it, expect, beforeAll} from "@jest/globals"
 import { ethers, getBytes } from "ethers";
-import { SolidityEncoder, SolidityDecoder} from "../src";
+import { SolidityEncoder } from "../src/solidity-encoder";
+import { SolidityDecoder } from "../src/solidity-decoder";
 
 function uint8ArrayToHex(uint8Array: Uint8Array) {
   const hexString = Array.from(uint8Array)
@@ -9,7 +10,7 @@ function uint8ArrayToHex(uint8Array: Uint8Array) {
   return '0x' + hexString;
 }
 
-describe("Solidity Encoding", () => {
+describe("Solidity encoding and decoding", () => {
   let encoder: SolidityEncoder;
   let decoder: SolidityDecoder;
 

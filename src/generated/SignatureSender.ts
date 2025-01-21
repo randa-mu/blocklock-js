@@ -397,7 +397,7 @@ export interface SignatureSender extends BaseContract {
 
   lastRequestID: TypedContractMethod<[], [bigint], "view">;
 
-  multicall: TypedContractMethod<[data: BytesLike[]], [string[]], "payable">;
+  multicall: TypedContractMethod<[data: BytesLike[]], [string[]], "nonpayable">;
 
   renounceRole: TypedContractMethod<
     [role: BytesLike, callerConfirmation: AddressLike],
@@ -494,7 +494,7 @@ export interface SignatureSender extends BaseContract {
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "multicall"
-  ): TypedContractMethod<[data: BytesLike[]], [string[]], "payable">;
+  ): TypedContractMethod<[data: BytesLike[]], [string[]], "nonpayable">;
   getFunction(
     nameOrSignature: "renounceRole"
   ): TypedContractMethod<

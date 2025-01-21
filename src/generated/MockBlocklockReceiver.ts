@@ -49,23 +49,26 @@ export declare namespace TypesLib {
 export interface MockBlocklockReceiverInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | "Ciphertext"
       | "createTimelockRequest"
-      | "plainText"
+      | "encrytpedValue"
+      | "plainTextValue"
       | "receiveBlocklock"
       | "requestId"
       | "timelock"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "Ciphertext",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "createTimelockRequest",
     values: [BigNumberish, TypesLib.CiphertextStruct]
   ): string;
-  encodeFunctionData(functionFragment: "plainText", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "encrytpedValue",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "plainTextValue",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "receiveBlocklock",
     values: [BigNumberish, BytesLike]
@@ -73,12 +76,18 @@ export interface MockBlocklockReceiverInterface extends Interface {
   encodeFunctionData(functionFragment: "requestId", values?: undefined): string;
   encodeFunctionData(functionFragment: "timelock", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "Ciphertext", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "createTimelockRequest",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "plainText", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "encrytpedValue",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "plainTextValue",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "receiveBlocklock",
     data: BytesLike
@@ -130,7 +139,16 @@ export interface MockBlocklockReceiver extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
-  Ciphertext: TypedContractMethod<
+  createTimelockRequest: TypedContractMethod<
+    [
+      decryptionBlockNumber: BigNumberish,
+      encryptedData: TypesLib.CiphertextStruct
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+
+  encrytpedValue: TypedContractMethod<
     [],
     [
       [BLS.PointG2StructOutput, string, string] & {
@@ -142,16 +160,7 @@ export interface MockBlocklockReceiver extends BaseContract {
     "view"
   >;
 
-  createTimelockRequest: TypedContractMethod<
-    [
-      decryptionBlockNumber: BigNumberish,
-      encryptedData: TypesLib.CiphertextStruct
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-
-  plainText: TypedContractMethod<[], [bigint], "view">;
+  plainTextValue: TypedContractMethod<[], [bigint], "view">;
 
   receiveBlocklock: TypedContractMethod<
     [requestID: BigNumberish, decryptionKey: BytesLike],
@@ -168,7 +177,17 @@ export interface MockBlocklockReceiver extends BaseContract {
   ): T;
 
   getFunction(
-    nameOrSignature: "Ciphertext"
+    nameOrSignature: "createTimelockRequest"
+  ): TypedContractMethod<
+    [
+      decryptionBlockNumber: BigNumberish,
+      encryptedData: TypesLib.CiphertextStruct
+    ],
+    [bigint],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "encrytpedValue"
   ): TypedContractMethod<
     [],
     [
@@ -181,17 +200,7 @@ export interface MockBlocklockReceiver extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "createTimelockRequest"
-  ): TypedContractMethod<
-    [
-      decryptionBlockNumber: BigNumberish,
-      encryptedData: TypesLib.CiphertextStruct
-    ],
-    [bigint],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "plainText"
+    nameOrSignature: "plainTextValue"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "receiveBlocklock"

@@ -3,6 +3,7 @@
 /* eslint-disable */
 export { AbstractBlocklockReceiver__factory } from "./AbstractBlocklockReceiver__factory";
 export { AccessControl__factory } from "./AccessControl__factory";
+export { Address__factory } from "./Address__factory";
 export { BLS__factory } from "./BLS__factory";
 export { BlocklockSender__factory } from "./BlocklockSender__factory";
 export { BlocklockSignatureScheme__factory } from "./BlocklockSignatureScheme__factory";
@@ -11,6 +12,7 @@ export { DecryptionReceiverBase__factory } from "./DecryptionReceiverBase__facto
 export { DecryptionSender__factory } from "./DecryptionSender__factory";
 export { Deployer__factory } from "./Deployer__factory";
 export { ERC165__factory } from "./ERC165__factory";
+export { Errors__factory } from "./Errors__factory";
 export { IAccessControl__factory } from "./IAccessControl__factory";
 export { IBlocklockReceiver__factory } from "./IBlocklockReceiver__factory";
 export { IBlocklockSender__factory } from "./IBlocklockSender__factory";

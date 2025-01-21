@@ -7,8 +7,8 @@ import {IBlocklockReceiver} from "../interfaces/IBlocklockReceiver.sol";
 
 contract MockBlocklockReceiver is IBlocklockReceiver {
     uint256 public requestId;
-    TypesLib.Ciphertext public Ciphertext;
-    uint256 public plainText;
+    TypesLib.Ciphertext public encrytpedValue;
+    uint256 public plainTextValue;
 
     // ** State Variables **
     IBlocklockSender public timelock; // The timelock contract which we will be used to decrypt data at specific block
@@ -24,7 +24,10 @@ contract MockBlocklockReceiver is IBlocklockReceiver {
     }
 
     function createTimelockRequest(uint256 decryptionBlockNumber, TypesLib.Ciphertext calldata encryptedData) external returns (uint256) {
+        // create timelock request
         requestId = timelock.requestBlocklock(decryptionBlockNumber, encryptedData);
+        // store Ciphertext
+        encrytpedValue = encryptedData;
         return requestId;
     }
     
@@ -33,6 +36,7 @@ contract MockBlocklockReceiver is IBlocklockReceiver {
         onlyTimelockContract
     {
         require(requestID == requestId, "Invalid request id");
-        plainText = abi.decode(timelock.decrypt(Ciphertext, decryptionKey), (uint256));
+        // decrypt stored Ciphertext with decryption key
+        plainTextValue = abi.decode(timelock.decrypt(encrytpedValue, decryptionKey), (uint256));
     }
 }

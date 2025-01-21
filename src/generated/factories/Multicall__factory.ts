@@ -23,7 +23,23 @@ const _abi = [
         internalType: "bytes[]",
       },
     ],
-    stateMutability: "payable",
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "error",
+    name: "AddressEmptyCode",
+    inputs: [
+      {
+        name: "target",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+  },
+  {
+    type: "error",
+    name: "FailedCall",
+    inputs: [],
   },
 ] as const;
 

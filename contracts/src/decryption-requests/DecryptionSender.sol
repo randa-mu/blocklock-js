@@ -6,7 +6,7 @@ import {TypesLib} from "../libraries/TypesLib.sol";
 import {console} from "forge-std/console.sol";
 import {BytesLib} from "../libraries/BytesLib.sol";
 
-import {Multicall} from "../Multicall.sol";
+import {Multicall} from "@openzeppelin/contracts/utils/Multicall.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 import {IDecryptionSender} from "../interfaces/IDecryptionSender.sol";
@@ -110,7 +110,9 @@ contract DecryptionSender is IDecryptionSender, AccessControl, Multicall {
 
         ISignatureScheme sigScheme = ISignatureScheme(schemeContractAddress);
         bytes memory messageHash = sigScheme.hashToBytes(request.condition);
+        
         require(sigScheme.verifySignature(messageHash, signature, getPublicKeyBytes()), "Signature verification failed");
+        
         (bool success,) = request.callback.call(
             abi.encodeWithSelector(
                 IDecryptionReceiver.receiveDecryptionData.selector, requestID, decryptionKey, signature

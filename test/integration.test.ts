@@ -1,15 +1,47 @@
 import Ganache from "ganache";
-import { ZeroAddress, ethers } from "ethers";
+import { ZeroAddress, ethers, getBytes, isHexString, toUtf8Bytes, AbiCoder } from "ethers";
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-
 import {MockBlocklockReceiver__factory, BlocklockSender__factory, BlocklockSignatureScheme__factory, DecryptionSender__factory, SignatureSchemeAddressProvider__factory, SignatureSender__factory} from "../src/generated"
+import {Blocklock, encodeCiphertextToSolidity, parseSolidityCiphertextString} from "../src"
+import { SolidityEncoder } from "../src/solidity-encoder";
+import {BlsBn254} from "../src/crypto/bls-bn254";
+import {extractSingleLog} from "../src"
+import { keccak_256 } from "@noble/hashes/sha3";
+import { IbeOpts, preprocess_decryption_key_g1 } from "../src/crypto/ibe-bn254";
+import { TypesLib as BlocklockTypes } from "../src/generated/BlocklockSender";
+
+const blocklock_default_pk = {
+  x: {
+    c0: BigInt("0x2691d39ecc380bfa873911a0b848c77556ee948fb8ab649137d3d3e78153f6ca"),
+    c1: BigInt("0x2863e20a5125b098108a5061b31f405e16a069e9ebff60022f57f4c4fd0237bf"),
+  },
+  y: {
+    c0: BigInt("0x193513dbe180d700b189c529754f650b7b7882122c8a1e242a938d23ea9f765c"),
+    c1: BigInt("0x11c939ea560caf31f552c9c4879b15865d38ba1dfb0f7a7d2ac46a4f0cae25ba"),
+  },
+};
+
+const BLOCKLOCK_IBE_OPTS: IbeOpts = {
+  hash: keccak_256,
+  k: 128,
+  expand_fn: "xmd",
+  dsts: {
+    H1_G1: Buffer.from("BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_"),
+    H2: Buffer.from("BLOCKLOCK_BN254_XMD:KECCAK-256_H2_"),
+    H3: Buffer.from("BLOCKLOCK_BN254_XMD:KECCAK-256_H3_"),
+    H4: Buffer.from("BLOCKLOCK_BN254_XMD:KECCAK-256_H4_"),
+  },
+};
+
+const blsKey = "0x58aabbe98959c4dcb96c44c53be7e3bb980791fc7a9e03445c4af612a45ac906";
+const SCHEME_ID = "BN254-BLS-BLOCKLOCK";
 
 let server: any;
 let provider: ethers.JsonRpcProvider;
 let wallet: ethers.Signer;
 let accounts: ethers.Signer[];
 
-describe("Blockchain Integration Tests with Ganache", () => {
+describe("Blocklock blockchain integration tests with Ganache", () => {
   beforeAll(async () => {
     // Start Ganache server with a mnemonic
     server = Ganache.server({
@@ -48,22 +80,7 @@ describe("Blockchain Integration Tests with Ganache", () => {
     expect(await wallet.getAddress()).not.toBe(ZeroAddress);
   });
 
-  it.only("can request blocklock decryption for user contract", async () => {
-    /** FIELD VARIABLES */
-
-    const blocklock_default_pk = {
-      x: {
-        c0: BigInt("0x2691d39ecc380bfa873911a0b848c77556ee948fb8ab649137d3d3e78153f6ca"),
-        c1: BigInt("0x2863e20a5125b098108a5061b31f405e16a069e9ebff60022f57f4c4fd0237bf"),
-      },
-      y: {
-        c0: BigInt("0x193513dbe180d700b189c529754f650b7b7882122c8a1e242a938d23ea9f765c"),
-        c1: BigInt("0x11c939ea560caf31f552c9c4879b15865d38ba1dfb0f7a7d2ac46a4f0cae25ba"),
-      },
-    };
-
-    const SCHEME_ID = "BN254-BLS-BLOCKLOCK";
-
+  it("can request blocklock decryption from user contract with on-chain decryption", async () => {
     /** DEPLOY CONTRACTS */
 
     // deploy signature scheme address provider
@@ -117,6 +134,7 @@ describe("Blockchain Integration Tests with Ganache", () => {
       schemeProviderAddr,
     )
     await decryptionSender.waitForDeployment()
+    const decryptionSenderInstance = DecryptionSender__factory.connect(await decryptionSender.getAddress(), wallet)
 
     // deploy blocklock sender
     const BlocklockSender = new ethers.ContractFactory(
@@ -135,12 +153,83 @@ describe("Blockchain Integration Tests with Ganache", () => {
       MockBlocklockReceiver__factory.bytecode,
       wallet
     )
-    const mockBlocklockReceiver = await MockBlocklockReceiver.deploy()
+    const mockBlocklockReceiver = await MockBlocklockReceiver.deploy(
+      await blocklockSender.getAddress()
+    )
     await mockBlocklockReceiver.waitForDeployment()
 
-    // const blockHeight = await provider.getBlockNumber();
-    // console.log("current block number", blockHeight)
 
-    /**  */
+    /** Blocklock js Integration */
+
+    const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress())
+    const mockBlocklockReceiverInstance = MockBlocklockReceiver__factory.connect(await mockBlocklockReceiver.getAddress(), wallet);
+    
+    expect(await mockBlocklockReceiverInstance.plainTextValue()).toBe(BigInt(0));
+
+    const blockHeight = BigInt(await provider.getBlockNumber() + 2);
+    const msg = ethers.parseEther("4");
+    const encoder = new SolidityEncoder()
+    const msgBytes = encoder.encodeUint256(msg);
+    const encodedMessage = getBytes(msgBytes);
+
+    const ct = blocklockjs.encrypt(encodedMessage, blockHeight, blocklock_default_pk);
+
+    let tx = await mockBlocklockReceiverInstance.connect(wallet).createTimelockRequest(blockHeight, encodeCiphertextToSolidity(ct))
+    const receipt = await tx.wait(1);
+    if (!receipt) {
+      throw new Error("transaction has not been mined");
+    }
+
+    const blockRequest = await blocklockjs.fetchBlocklockRequest("1");
+    expect(blockRequest!.blockHeight).toBe(BigInt(blockHeight));
+
+    let blocklockRequestStatus = await blocklockjs.fetchBlocklockStatus("1")
+    expect(blocklockRequestStatus!.blockHeight).toBe(BigInt(blockHeight));
+    expect(blocklockRequestStatus?.decryptionKey).toBe(undefined);
+
+    const decryptionSenderIface = DecryptionSender__factory.createInterface();
+    const [requestID, callback, schemeID, condition, ciphertext] = extractSingleLog(
+      decryptionSenderIface,
+      receipt,
+      await decryptionSender.getAddress(),
+      decryptionSenderIface.getEvent("DecryptionRequested"),
+    );
+    console.log(`received decryption request id ${requestID}`);
+    console.log(`blocklock request id ${blockRequest?.id}`);
+    console.log(`callback address ${callback}, scheme id ${schemeID}`);
+
+    const bls = await BlsBn254.create();
+    const { pubKey, secretKey } = bls.createKeyPair(blsKey);
+
+    const conditionBytes = isHexString(condition) ? getBytes(condition) : toUtf8Bytes(condition);
+    const m = bls.hashToPoint(BLOCKLOCK_IBE_OPTS.dsts.H1_G1, conditionBytes);
+
+    const parsedCiphertext = parseSolidityCiphertextString(ciphertext);
+    const signature = bls.sign(m, secretKey).signature;
+    const sig = bls.serialiseG1Point(signature);
+    const sigBytes = AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [sig[0], sig[1]]);
+
+    const decryption_key = preprocess_decryption_key_g1(parsedCiphertext, { x: sig[0], y: sig[1] }, BLOCKLOCK_IBE_OPTS);
+
+    tx = await decryptionSenderInstance.connect(wallet).fulfilDecryptionRequest(requestID, decryption_key, sigBytes);
+    
+    const txreceipt = await tx.wait(1);
+    if (!txreceipt) {
+      throw new Error("transaction has not been mined");
+    }
+
+    const iface = BlocklockSender__factory.createInterface();
+    const [, , , ] = extractSingleLog(
+      iface,
+      txreceipt,
+      await blocklockSender.getAddress(),
+      iface.getEvent("BlocklockCallbackSuccess"),
+    );
+
+    blocklockRequestStatus = await blocklockjs.fetchBlocklockStatus("1")
+    expect(blocklockRequestStatus!.blockHeight).toBe(blockHeight);
+    expect(blocklockRequestStatus?.decryptionKey).not.toBe(undefined);
+
+    expect(await mockBlocklockReceiverInstance.plainTextValue()).toBe(BigInt(msg));
   });
 });

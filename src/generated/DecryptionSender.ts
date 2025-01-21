@@ -407,7 +407,7 @@ export interface DecryptionSender extends BaseContract {
 
   lastRequestID: TypedContractMethod<[], [bigint], "view">;
 
-  multicall: TypedContractMethod<[data: BytesLike[]], [string[]], "payable">;
+  multicall: TypedContractMethod<[data: BytesLike[]], [string[]], "nonpayable">;
 
   registerCiphertext: TypedContractMethod<
     [schemeID: string, ciphertext: BytesLike, condition: BytesLike],
@@ -505,7 +505,7 @@ export interface DecryptionSender extends BaseContract {
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "multicall"
-  ): TypedContractMethod<[data: BytesLike[]], [string[]], "payable">;
+  ): TypedContractMethod<[data: BytesLike[]], [string[]], "nonpayable">;
   getFunction(
     nameOrSignature: "registerCiphertext"
   ): TypedContractMethod<

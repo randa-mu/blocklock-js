@@ -135,15 +135,6 @@ class BlsBn254 {
         return p
     }
 
-    public concatenateUint8Arrays(domain: Uint8Array, msg: Uint8Array): Uint8Array {
-        const concatenatedArray = new Uint8Array(domain.length + msg.length);
-
-        concatenatedArray.set(domain, 0); // Set the first part
-        concatenatedArray.set(msg, domain.length); // Set the second part
-
-        return concatenatedArray;
-    }
-
     public serialiseFp(p: Fp | Fp2): `0x${string}` {
         // NB: big-endian
         return ("0x" +
@@ -169,18 +160,6 @@ class BlsBn254 {
             BigInt(dataSlice(y, 32)),
             BigInt(dataSlice(y, 0, 32)),
         ]
-    }
-
-    public deserialiseG2Point([x1, x2, y1, y2]: [bigint, bigint, bigint, bigint]): G2 {
-        const x = this.deserialiseFp2([x1, x2])
-        const y = this.deserialiseFp2([y1, y2])
-        const z = this.deserialiseFp2([0n, 1n])
-        const out = this.G2.clone()
-
-        out.setX(x)
-        out.setY(y)
-        out.setZ(z)
-        return out
     }
 
     public deserialiseFp2([x, y]: [bigint, bigint]): Fp2 {
@@ -447,35 +426,11 @@ export function kyberMarshalG2(p: G2) {
     ].join("")
 }
 
-export function mclMarshalG2(p: G2) {
-    return [
-        byteSwap(p.getX().get_a().serializeToHexStr(), 32),
-        byteSwap(p.getX().get_b().serializeToHexStr(), 32),
-        byteSwap(p.getY().get_a().serializeToHexStr(), 32),
-        byteSwap(p.getY().get_b().serializeToHexStr(), 32),
-    ].join("")
-}
-
 export function kyberMarshalG1(p: G1) {
     return [
         byteSwap(p.getX().serializeToHexStr(), 32),
         byteSwap(p.getY().serializeToHexStr(), 32),
     ].join("")
-}
-
-export function kyberG1ToEvm(g1: Uint8Array): [bigint, bigint] {
-    const p = [g1.slice(0, 32), g1.slice(32, 64)].map((sigBuf) => BigInt(hexlify(sigBuf))) as [
-        bigint,
-        bigint,
-    ]
-    return p
-}
-
-export function kyberG2ToEvm(g2: Uint8Array): [bigint, bigint, bigint, bigint] {
-    const p = [g2.slice(32, 64), g2.slice(0, 32), g2.slice(96, 128), g2.slice(64, 96)].map((pBuf) =>
-        BigInt(hexlify(pBuf)),
-    ) as [bigint, bigint, bigint, bigint]
-    return p
 }
 
 function mod(a: bigint, b: bigint) {
