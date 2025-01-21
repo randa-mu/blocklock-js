@@ -34,8 +34,8 @@ const iface = BlocklockSender__factory.createInterface()
 export class Blocklock {
     private blocklockSender: BlocklockSender
 
-    constructor(provider: Signer | Provider, private readonly contractAddress: string) {
-        this.blocklockSender = BlocklockSender__factory.connect(contractAddress, provider)
+    constructor(provider: Signer | Provider, private readonly blocklockSenderContractAddress: string) {
+        this.blocklockSender = BlocklockSender__factory.connect(blocklockSenderContractAddress, provider)
     }
 
     /**
@@ -52,7 +52,7 @@ export class Blocklock {
             throw new Error("transaction has not been mined")
         }
 
-        const [requestID] = extractSingleLog(iface, receipt, this.contractAddress, iface.getEvent("BlocklockRequested"))
+        const [requestID] = extractSingleLog(iface, receipt, this.blocklockSenderContractAddress, iface.getEvent("BlocklockRequested"))
         return requestID
     }
 
