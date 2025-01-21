@@ -2,7 +2,7 @@ import {describe, it, expect, beforeAll} from "@jest/globals"
 import { ethers } from "ethers";
 import { SolidityEncoder, SolidityDecoder} from "../src";
 
-describe("Solidityencoder", () => {
+describe("Solidity Encoding", () => {
   let encoder: SolidityEncoder;
   let decoder: SolidityDecoder;
 
