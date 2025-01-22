@@ -96,7 +96,7 @@ main().catch((error) => {
 
 2. On-Chain Interaction:
 
-    * Call the appropriate function in the user contract with the encrypted data and the block number used during off-chain encryption. In this example, the function `createTimelockRequest` is called, which creates a timelock request, stores the encrypted data, and generates a request ID.
+    * Call the appropriate function in the user contract with the encrypted data and the block number used during off-chain encryption. In this example, the function `createTimelockRequest` is called, which creates an on-chain timelock request with the encrypted data and block number as a condition for decryption, stores the encrypted data, and generates a request ID.
 
 3. Decryption:
 
