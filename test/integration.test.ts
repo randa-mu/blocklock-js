@@ -81,7 +81,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
   });
 
   it("can request blocklock decryption from user contract with on-chain decryption", async () => {
-    /** DEPLOY CONTRACTS */
+    /** Smart Contract Deployments */
 
     // deploy signature scheme address provider
     const SignatureSchemeAddressProvider = new ethers.ContractFactory(
@@ -106,20 +106,6 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
 
     const schemeProviderContract = SignatureSchemeAddressProvider__factory.connect(schemeProviderAddr, wallet)
     await schemeProviderContract.updateSignatureScheme(SCHEME_ID, await blocklockScheme.getAddress());
-
-    // deploy signature sender
-    const SignatureSender = new ethers.ContractFactory(
-      SignatureSender__factory.abi,
-      SignatureSender__factory.bytecode,
-        wallet,
-    )
-    const signatureSender = await SignatureSender.deploy(
-      [blocklock_default_pk.x.c0, blocklock_default_pk.x.c1],
-      [blocklock_default_pk.y.c0, blocklock_default_pk.y.c1],
-      await wallet.getAddress(),
-      schemeProviderAddr,
-    )
-    await signatureSender.waitForDeployment()
 
     // deploy decryption sender
     const DecryptionSender = new ethers.ContractFactory(
