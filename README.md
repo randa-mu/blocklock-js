@@ -3,7 +3,6 @@
 BlocklockJS is a TypeScript library designed to simplify the process of generating encrypted data off-chain for the dcrypt network. It enables developers to securely encrypt data tied to a user-specified future block number. The encrypted data can then be used to create on-chain timelock encryption requests in smart contracts. Once the specified block number is mined, the user’s smart contract will receive the decryption keys automatically.
 
 
-
 ### Key Capabilities
 Using this library, developers can:
 
