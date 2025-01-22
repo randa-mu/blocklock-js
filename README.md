@@ -10,16 +10,6 @@ Using this library, developers can:
 * Encode and encrypt various Solidity-compatible data types.
 * Encrypt the encoded data off-chain using a public key, which can then be integrated into smart contracts for timelock encryption requests.
 
-### Build Instructions
-
-To build the library, run the following command:
-
-```sh
-npm run build
-```
-
-This creates an `index.js` and `index.d.ts` at the root directory.
-
 
 ### On-Chain Integration
 
@@ -31,6 +21,16 @@ Solidity interfaces used for on-chain decryption requests can be found in the [c
 |-----------------|---------|------------------|
 | BlocklockSender | 0x...   | Filecoin Testnet |
 
+
+### Build Instructions
+
+To build the library, run the following command:
+
+```sh
+npm run build
+```
+
+This creates an `index.js` and `index.d.ts` at the root directory.
 
 ### Usage Example
 
@@ -94,15 +94,15 @@ main().catch((error) => {
 1. Encoding and Encryption:
 
     * Use the SolidityEncoder to encode Solidity-compatible data types.
-    * Encrypt the encoded message with the recipient's public key and specify the decryption block number.
+    * Encrypt the encoded message and specify the decryption block number.
 
 2. On-Chain Interaction:
 
-    * Call the user contract's createTimelockRequest function to store the encrypted data and block number.
+    * Call the relevant function in the user contract (with the encrypted data and block number used for off-chain encryption) to create an on-chain timelock request. In this example, the function called in the user contract is `createTimelockRequest` which creates a timelock request and stores the encrypted data and request Id.
 
 3. Decryption:
 
-    * After the specified block number, the on-chain timelock contract will trigger a callback function to decrypt the data using a provided decryption key.
+    * After the specified block number, the on-chain timelock contract will trigger a callback function calling the user's contract with the decryption key and the user's contract calls the decrypt function in the BlocklockSender contract using the provided decryption key for on-chain decryption.
 
 
 ### Supported Data Types
