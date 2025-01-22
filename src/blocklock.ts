@@ -5,7 +5,17 @@ import {TypesLib as BlocklockTypes} from "./generated/BlocklockSender"
 import {extractSingleLog} from "./ethers-utils"
 import {Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts} from "./crypto/ibe-bn254"
 
+export type BigIntPair = {
+    c0: bigint;
+    c1: bigint;
+  };
+  
+  export type BlockLockPublicKey = {
+    x: BigIntPair;
+    y: BigIntPair;
+  };
 
+  
 const BLOCKLOCK_IBE_OPTS: IbeOpts = {
     hash: keccak_256,
     k: 128,
@@ -18,7 +28,7 @@ const BLOCKLOCK_IBE_OPTS: IbeOpts = {
     },
   };
 
-export const BLOCKLOCK_DEFAULT_PUBLIC_KEY = {
+export const BLOCKLOCK_DEFAULT_PUBLIC_KEY: BlockLockPublicKey = {
     x: {
       c0: BigInt("0x2691d39ecc380bfa873911a0b848c77556ee948fb8ab649137d3d3e78153f6ca"),
       c1: BigInt("0x2863e20a5125b098108a5061b31f405e16a069e9ebff60022f57f4c4fd0237bf"),
@@ -33,9 +43,11 @@ const iface = BlocklockSender__factory.createInterface()
 
 export class Blocklock {
     private blocklockSender: BlocklockSender
+    private blocklockPublicKey: any
 
-    constructor(provider: Signer | Provider, private readonly blocklockSenderContractAddress: string) {
+    constructor(provider: Signer | Provider, private readonly blocklockSenderContractAddress: string, blocklockPublicKey: BlockLockPublicKey = BLOCKLOCK_DEFAULT_PUBLIC_KEY) {
         this.blocklockSender = BlocklockSender__factory.connect(blocklockSenderContractAddress, provider)
+        this.blocklockPublicKey = blocklockPublicKey
     }
 
     /**
@@ -138,7 +150,7 @@ export class Blocklock {
      * @param pk public key of the scheme
      * @returns encrypted message
      */
-    encrypt(message: Uint8Array, blockHeight: bigint, pk: G2 = BLOCKLOCK_DEFAULT_PUBLIC_KEY): Ciphertext {
+    encrypt(message: Uint8Array, blockHeight: bigint, pk: G2 = this.blocklockPublicKey): Ciphertext {
         const identity = blockHeightToBEBytes(blockHeight)
         return encrypt_towards_identity_g1(message, identity, pk, BLOCKLOCK_IBE_OPTS)
     }
@@ -160,7 +172,7 @@ export class Blocklock {
      * @param pk public key of the scheme
      * @returns the identifier of the blocklock request, and the ciphertext
      */
-    async encryptAndRegister(message: Uint8Array, blockHeight: bigint, pk: G2 = BLOCKLOCK_DEFAULT_PUBLIC_KEY): Promise<{
+    async encryptAndRegister(message: Uint8Array, blockHeight: bigint, pk: G2 = this.blocklockPublicKey): Promise<{
         id: string,
         ct: Ciphertext
     }> {
