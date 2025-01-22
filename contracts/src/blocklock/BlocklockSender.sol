@@ -85,7 +85,7 @@ contract BlocklockSender is IBlocklockSender, DecryptionReceiverBase {
         (bool success,) = r.callback.call(
             abi.encodeWithSelector(IBlocklockReceiver.receiveBlocklock.selector, decryptionRequestID, decryptionKey)
         );
-        
+
         if (!success) {
             revert BlocklockCallbackFailed(decryptionRequestID);
         } else {

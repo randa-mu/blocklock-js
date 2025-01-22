@@ -49,14 +49,15 @@ export declare namespace TypesLib {
 export interface MockBlocklockReceiverInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "blocklock"
       | "createTimelockRequest"
       | "encrytpedValue"
       | "plainTextValue"
       | "receiveBlocklock"
       | "requestId"
-      | "timelock"
   ): FunctionFragment;
 
+  encodeFunctionData(functionFragment: "blocklock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "createTimelockRequest",
     values: [BigNumberish, TypesLib.CiphertextStruct]
@@ -74,8 +75,8 @@ export interface MockBlocklockReceiverInterface extends Interface {
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "requestId", values?: undefined): string;
-  encodeFunctionData(functionFragment: "timelock", values?: undefined): string;
 
+  decodeFunctionResult(functionFragment: "blocklock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "createTimelockRequest",
     data: BytesLike
@@ -93,7 +94,6 @@ export interface MockBlocklockReceiverInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "requestId", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "timelock", data: BytesLike): Result;
 }
 
 export interface MockBlocklockReceiver extends BaseContract {
@@ -139,6 +139,8 @@ export interface MockBlocklockReceiver extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  blocklock: TypedContractMethod<[], [string], "view">;
+
   createTimelockRequest: TypedContractMethod<
     [
       decryptionBlockNumber: BigNumberish,
@@ -170,12 +172,13 @@ export interface MockBlocklockReceiver extends BaseContract {
 
   requestId: TypedContractMethod<[], [bigint], "view">;
 
-  timelock: TypedContractMethod<[], [string], "view">;
-
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "blocklock"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "createTimelockRequest"
   ): TypedContractMethod<
@@ -212,9 +215,6 @@ export interface MockBlocklockReceiver extends BaseContract {
   getFunction(
     nameOrSignature: "requestId"
   ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "timelock"
-  ): TypedContractMethod<[], [string], "view">;
 
   filters: {};
 }

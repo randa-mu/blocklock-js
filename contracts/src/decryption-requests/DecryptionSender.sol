@@ -110,9 +110,9 @@ contract DecryptionSender is IDecryptionSender, AccessControl, Multicall {
 
         ISignatureScheme sigScheme = ISignatureScheme(schemeContractAddress);
         bytes memory messageHash = sigScheme.hashToBytes(request.condition);
-        
+
         require(sigScheme.verifySignature(messageHash, signature, getPublicKeyBytes()), "Signature verification failed");
-        
+
         (bool success,) = request.callback.call(
             abi.encodeWithSelector(
                 IDecryptionReceiver.receiveDecryptionData.selector, requestID, decryptionKey, signature
