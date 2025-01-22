@@ -1,14 +1,11 @@
 import Ganache from "ganache";
 import { ZeroAddress, ethers, getBytes, isHexString, toUtf8Bytes, AbiCoder } from "ethers";
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals";
-import {MockBlocklockReceiver__factory, BlocklockSender__factory, BlocklockSignatureScheme__factory, DecryptionSender__factory, SignatureSchemeAddressProvider__factory, SignatureSender__factory} from "../src/generated"
-import {Blocklock, encodeCiphertextToSolidity, parseSolidityCiphertextString} from "../src"
-import { SolidityEncoder } from "../src/solidity-encoder";
-import {BlsBn254} from "../src/crypto/bls-bn254";
-import {extractSingleLog} from "../src"
 import { keccak_256 } from "@noble/hashes/sha3";
+import { MockBlocklockReceiver__factory, BlocklockSender__factory, BlocklockSignatureScheme__factory, DecryptionSender__factory, SignatureSchemeAddressProvider__factory } from "../src/generated"
+import { SolidityEncoder, Blocklock, encodeCiphertextToSolidity, parseSolidityCiphertextString, extractSingleLog } from "../src"
+import { BlsBn254 } from "../src/crypto/bls-bn254";
 import { IbeOpts, preprocess_decryption_key_g1 } from "../src/crypto/ibe-bn254";
-import { TypesLib as BlocklockTypes } from "../src/generated/BlocklockSender";
 
 const blocklock_default_pk = {
   x: {
@@ -87,19 +84,19 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
     const SignatureSchemeAddressProvider = new ethers.ContractFactory(
       SignatureSchemeAddressProvider__factory.abi,
       SignatureSchemeAddressProvider__factory.bytecode,
-        wallet,
+      wallet,
     )
     const signatureSchemeAddressProvider = await SignatureSchemeAddressProvider.deploy(
       await wallet.getAddress()
     )
     await signatureSchemeAddressProvider.waitForDeployment()
     const schemeProviderAddr = await signatureSchemeAddressProvider.getAddress()
-    
+
     // deploy blocklock scheme
     const BlocklockScheme = new ethers.ContractFactory(
       BlocklockSignatureScheme__factory.abi,
       BlocklockSignatureScheme__factory.bytecode,
-        wallet,
+      wallet,
     )
     const blocklockScheme = await BlocklockScheme.deploy()
     await blocklockScheme.waitForDeployment()
@@ -111,7 +108,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
     const DecryptionSender = new ethers.ContractFactory(
       DecryptionSender__factory.abi,
       DecryptionSender__factory.bytecode,
-        wallet,
+      wallet,
     )
     const decryptionSender = await DecryptionSender.deploy(
       [blocklock_default_pk.x.c0, blocklock_default_pk.x.c1],
@@ -126,7 +123,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
     const BlocklockSender = new ethers.ContractFactory(
       BlocklockSender__factory.abi,
       BlocklockSender__factory.bytecode,
-        wallet,
+      wallet,
     )
     const blocklockSender = await BlocklockSender.deploy(
       await decryptionSender.getAddress()
@@ -135,7 +132,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
 
     // deploy user mock decryption receiver contract
     const MockBlocklockReceiver = new ethers.ContractFactory(
-      MockBlocklockReceiver__factory.abi, 
+      MockBlocklockReceiver__factory.abi,
       MockBlocklockReceiver__factory.bytecode,
       wallet
     )
@@ -149,7 +146,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
 
     const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress())
     const mockBlocklockReceiverInstance = MockBlocklockReceiver__factory.connect(await mockBlocklockReceiver.getAddress(), wallet);
-    
+
     expect(await mockBlocklockReceiverInstance.plainTextValue()).toBe(BigInt(0));
 
     const blockHeight = BigInt(await provider.getBlockNumber() + 2);
@@ -161,7 +158,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
     const ct = blocklockjs.encrypt(encodedMessage, blockHeight, blocklock_default_pk);
 
     let tx = await mockBlocklockReceiverInstance.connect(wallet).createTimelockRequest(blockHeight, encodeCiphertextToSolidity(ct))
-    const receipt = await tx.wait(1);
+    let receipt = await tx.wait(1);
     if (!receipt) {
       throw new Error("transaction has not been mined");
     }
@@ -198,16 +195,15 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
     const decryption_key = preprocess_decryption_key_g1(parsedCiphertext, { x: sig[0], y: sig[1] }, BLOCKLOCK_IBE_OPTS);
 
     tx = await decryptionSenderInstance.connect(wallet).fulfilDecryptionRequest(requestID, decryption_key, sigBytes);
-    
-    const txreceipt = await tx.wait(1);
-    if (!txreceipt) {
+    receipt = await tx.wait(1);
+    if (!receipt) {
       throw new Error("transaction has not been mined");
     }
 
     const iface = BlocklockSender__factory.createInterface();
-    const [, , , ] = extractSingleLog(
+    const [, , ,] = extractSingleLog(
       iface,
-      txreceipt,
+      receipt,
       await blocklockSender.getAddress(),
       iface.getEvent("BlocklockCallbackSuccess"),
     );
