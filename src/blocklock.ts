@@ -1,43 +1,43 @@
-import {getBytes, Provider, Signer, AbiCoder} from "ethers"
-import {keccak_256} from "@noble/hashes/sha3"
-import {BlocklockSender, BlocklockSender__factory} from "./generated"
-import {TypesLib as BlocklockTypes} from "./generated/BlocklockSender"
-import {extractSingleLog} from "./ethers-utils"
-import {Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts} from "./crypto/ibe-bn254"
+import { getBytes, Provider, Signer, AbiCoder } from "ethers"
+import { keccak_256 } from "@noble/hashes/sha3"
+import { BlocklockSender, BlocklockSender__factory } from "./generated"
+import { TypesLib as BlocklockTypes } from "./generated/BlocklockSender"
+import { extractSingleLog } from "./ethers-utils"
+import { Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts } from "./crypto/ibe-bn254"
 
 export type BigIntPair = {
     c0: bigint;
     c1: bigint;
-  };
-  
-  export type BlockLockPublicKey = {
+};
+
+export type BlockLockPublicKey = {
     x: BigIntPair;
     y: BigIntPair;
-  };
+};
 
-  
+
 const BLOCKLOCK_IBE_OPTS: IbeOpts = {
     hash: keccak_256,
     k: 128,
     expand_fn: "xmd",
     dsts: {
-      H1_G1: Buffer.from("BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_"),
-      H2: Buffer.from("BLOCKLOCK_BN254_XMD:KECCAK-256_H2_"),
-      H3: Buffer.from("BLOCKLOCK_BN254_XMD:KECCAK-256_H3_"),
-      H4: Buffer.from("BLOCKLOCK_BN254_XMD:KECCAK-256_H4_"),
+        H1_G1: Buffer.from("BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_"),
+        H2: Buffer.from("BLOCKLOCK_BN254_XMD:KECCAK-256_H2_"),
+        H3: Buffer.from("BLOCKLOCK_BN254_XMD:KECCAK-256_H3_"),
+        H4: Buffer.from("BLOCKLOCK_BN254_XMD:KECCAK-256_H4_"),
     },
-  };
+};
 
 export const BLOCKLOCK_DEFAULT_PUBLIC_KEY: BlockLockPublicKey = {
     x: {
-      c0: BigInt("0x2691d39ecc380bfa873911a0b848c77556ee948fb8ab649137d3d3e78153f6ca"),
-      c1: BigInt("0x2863e20a5125b098108a5061b31f405e16a069e9ebff60022f57f4c4fd0237bf"),
+        c0: BigInt("0x2691d39ecc380bfa873911a0b848c77556ee948fb8ab649137d3d3e78153f6ca"),
+        c1: BigInt("0x2863e20a5125b098108a5061b31f405e16a069e9ebff60022f57f4c4fd0237bf"),
     },
     y: {
-      c0: BigInt("0x193513dbe180d700b189c529754f650b7b7882122c8a1e242a938d23ea9f765c"),
-      c1: BigInt("0x11c939ea560caf31f552c9c4879b15865d38ba1dfb0f7a7d2ac46a4f0cae25ba"),
+        c0: BigInt("0x193513dbe180d700b189c529754f650b7b7882122c8a1e242a938d23ea9f765c"),
+        c1: BigInt("0x11c939ea560caf31f552c9c4879b15865d38ba1dfb0f7a7d2ac46a4f0cae25ba"),
     },
-  };
+};
 
 const iface = BlocklockSender__factory.createInterface()
 
@@ -225,7 +225,7 @@ export function parseSolidityCiphertext(ciphertext: BlocklockTypes.CiphertextStr
     const uY0 = ciphertext.u.y[0]
     const uY1 = ciphertext.u.y[1]
     return {
-        U: {x: {c0: uX0, c1: uX1}, y: {c0: uY0, c1: uY1}},
+        U: { x: { c0: uX0, c1: uX1 }, y: { c0: uY0, c1: uY1 } },
         V: getBytes(ciphertext.v),
         W: getBytes(ciphertext.w),
     }
@@ -234,20 +234,20 @@ export function parseSolidityCiphertext(ciphertext: BlocklockTypes.CiphertextStr
 export function parseSolidityCiphertextString(ciphertext: string): Ciphertext {
     const ctBytes = getBytes(ciphertext);
     const ct: BlocklockTypes.CiphertextStructOutput = AbiCoder.defaultAbiCoder().decode(
-      ["tuple(tuple(uint256[2] x, uint256[2] y) u, bytes v, bytes w)"],
-      ctBytes,
+        ["tuple(tuple(uint256[2] x, uint256[2] y) u, bytes v, bytes w)"],
+        ctBytes,
     )[0];
-  
+
     const uX0 = ct.u.x[0];
     const uX1 = ct.u.x[1];
     const uY0 = ct.u.y[0];
     const uY1 = ct.u.y[1];
     return {
-      U: { x: { c0: uX0, c1: uX1 }, y: { c0: uY0, c1: uY1 } },
-      V: getBytes(ct.v),
-      W: getBytes(ct.w),
+        U: { x: { c0: uX0, c1: uX1 }, y: { c0: uY0, c1: uY1 } },
+        V: getBytes(ct.v),
+        W: getBytes(ct.w),
     };
-  }
+}
 
 export function encodeCiphertextToSolidity(ciphertext: Ciphertext): BlocklockTypes.CiphertextStruct {
     const u: { x: [bigint, bigint], y: [bigint, bigint] } = {
