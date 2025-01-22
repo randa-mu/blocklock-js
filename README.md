@@ -96,11 +96,11 @@ main().catch((error) => {
 
 2. On-Chain Interaction:
 
-    * Call the relevant function in the user contract (with the encrypted data and block number used for off-chain encryption) to create an on-chain timelock request. In this example, the function called in the user contract is `createTimelockRequest` which creates a timelock request and stores the encrypted data and request Id.
+    * Call the appropriate function in the user contract with the encrypted data and the block number used during off-chain encryption. In this example, the function `createTimelockRequest` is called, which creates a timelock request, stores the encrypted data, and generates a request ID.
 
 3. Decryption:
 
-    * After the specified block number, the on-chain timelock contract will trigger a callback function calling the user's contract with the decryption key and the user's contract calls the decrypt function in the BlocklockSender contract using the provided decryption key for on-chain decryption.
+    * After the specified block number, the on-chain timelock contract triggers a callback to the user's contract, providing the decryption key. The user's contract then calls the `decrypt` function in the `BlocklockSender` contract to perform on-chain decryption using the provided decryption key.
 
 
 ### Supported Data Types
@@ -113,7 +113,7 @@ The library supports encoding and encryption of the following Solidity-compatibl
 * bytes
 * bytes32
 
-Use the SolidityEncoder to encode any of these types before encryption.
+Use the `SolidityEncoder` to encode any of these types before encryption.
 
 
 ### Licensing
