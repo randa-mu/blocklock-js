@@ -144,6 +144,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
 
     /** Blocklock js Integration */
 
+    // User or client side
     const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress())
     const mockBlocklockReceiverInstance = MockBlocklockReceiver__factory.connect(await mockBlocklockReceiver.getAddress(), wallet);
 
@@ -163,6 +164,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
       throw new Error("transaction has not been mined");
     }
 
+    // Blocklock agent or server side
     const blockRequest = await blocklockjs.fetchBlocklockRequest("1");
     expect(blockRequest!.blockHeight).toBe(BigInt(blockHeight));
 
