@@ -1,6 +1,6 @@
 ## @randamu/blocklock-js
 
-BlocklockJS is a TypeScript library designed to simplify the process of generating encrypted data off-chain for the dcrypt network. It enables developers to securely encrypt data tied to a user-specified future block number. The encrypted data can then be used to create on-chain timelock encryption requests in smart contracts. Once the specified block number is mined, the user’s smart contract will receive the decryption keys automatically.
+BlocklockJS is a TypeScript library designed to simplify the process of generating encrypted data off-chain for the dcrypt network. It enables developers to securely encrypt data tied to a user-specified future chain height. The encrypted data can then be used to create on-chain timelock encryption requests in smart contracts. Once the specified chain height is mined, the user’s smart contract will receive the decryption keys automatically.
 
 
 ### Key Capabilities
@@ -27,7 +27,6 @@ Solidity interfaces used for on-chain decryption requests can be found in the [c
 To build the library, run the following command:
 
 ```sh
-npm install
 npm run build
 ```
 
@@ -51,7 +50,7 @@ async function main() {
   // User wallet
   const wallet = new ethers.Wallet("your-private-key", ethers.provider);
   // User contract
-  const mockBlocklockReceiver = MockBlocklockReceiver__factory.connect("user blocklock receiver contract address", wallet);
+  const mockBlocklockReceiver = MockBlocklockReceiver__factory.connect("user blocklcok receiver contract address", wallet);
 
   // Ensure plainTextValue is initially 0
   console.log("Initial plainTextValue:", (await mockBlocklockReceiver.plainTextValue()).toString());
@@ -93,15 +92,15 @@ main().catch((error) => {
 1. Encoding and Encryption:
 
     * Use the SolidityEncoder to encode Solidity-compatible data types.
-    * Encrypt the encoded message and specify the decryption block number.
+    * Encrypt the encoded message and specify the decryption chain height.
 
 2. On-Chain Interaction:
 
-    * Call the appropriate function in the user contract with the encrypted data and the block number used during off-chain encryption. In this example, the function `createTimelockRequest` is called, which creates an on-chain timelock request with the encrypted data and block number as a condition for decryption, stores the encrypted data, and generates a request ID.
+    * Call the appropriate function in the user contract with the encrypted data and the chain height used during off-chain encryption. In this example, the function `createTimelockRequest` is called, which creates an on-chain timelock request with the encrypted data and chain height as a condition for decryption, stores the encrypted data, and generates a request ID.
 
 3. Decryption:
 
-    * After the specified block number, the on-chain timelock contract triggers a callback to the user's contract, providing the decryption key. The user's contract then calls the `decrypt` function in the `BlocklockSender` contract to perform on-chain decryption using the provided decryption key.
+    * After the specified chain height, the on-chain timelock contract triggers a callback to the user's contract, providing the decryption key. The user's contract then calls the `decrypt` function in the `BlocklockSender` contract to perform on-chain decryption using the provided decryption key.
 
 
 ### Supported Data Types
