@@ -4,6 +4,9 @@ on:
     branches: [master]
   pull_request:
 
+env:
+  BLS_KEY: ${{ secrets.BLS_KEY }}
+  
 jobs:
   build:
     runs-on: ubuntu-latest
