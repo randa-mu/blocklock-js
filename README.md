@@ -19,7 +19,7 @@ Solidity interfaces used for on-chain decryption requests can be found in the [c
 
 | Contract        | Address | Network          |
 |-----------------|---------|------------------|
-| BlocklockSender Proxy | 0xfF66908E1d7d23ff62791505b2eC120128918F44   | Filecoin Testnet |
+| BlocklockSender Proxy | 0xfF66908E1d7d23ff62791505b2eC120128918F44   | Filecoin Calibnet |
 
 
 ### Build Instructions
