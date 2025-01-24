@@ -6,7 +6,7 @@ import {AbstractBlocklockReceiver} from "../AbstractBlocklockReceiver.sol";
 
 contract MockBlocklockReceiver is AbstractBlocklockReceiver {
     uint256 public requestId;
-    TypesLib.Ciphertext public encrytpedValue;
+    TypesLib.Ciphertext public encryptedValue;
     uint256 public plainTextValue;
 
     constructor(address blocklockContract) AbstractBlocklockReceiver(blocklockContract) {}
