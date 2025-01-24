@@ -43,6 +43,7 @@
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.7.5",
+    "dotenv": "^16.4.5",
     "esbuild": "^0.24.0",
     "eslint": "^9.17.0",
     "ganache": "^7.9.2",

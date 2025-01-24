@@ -6,6 +6,8 @@ import { MockBlocklockReceiver__factory, BlocklockSender__factory, BlocklockSign
 import { SolidityEncoder, Blocklock, encodeCiphertextToSolidity, parseSolidityCiphertextString, extractSingleLog } from "../src"
 import { BlsBn254 } from "../src/crypto/bls-bn254";
 import { IbeOpts, preprocess_decryption_key_g1 } from "../src/crypto/ibe-bn254";
+import dotenv from 'dotenv';
+dotenv.config();
 
 const blocklock_default_pk = {
   x: {
@@ -30,7 +32,7 @@ const BLOCKLOCK_IBE_OPTS: IbeOpts = {
   },
 };
 
-const blsKey = "0x58aabbe98959c4dcb96c44c53be7e3bb980791fc7a9e03445c4af612a45ac906";
+const blsKey = process.env.BLS_KEY;
 const SCHEME_ID = "BN254-BLS-BLOCKLOCK";
 
 let server: any;
@@ -184,7 +186,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
     console.log(`callback address ${callback}, scheme id ${schemeID}`);
 
     const bls = await BlsBn254.create();
-    const { pubKey, secretKey } = bls.createKeyPair(blsKey);
+    const { pubKey, secretKey } = bls.createKeyPair(blsKey as `0x${string}`);
 
     const conditionBytes = isHexString(condition) ? getBytes(condition) : toUtf8Bytes(condition);
     const m = bls.hashToPoint(BLOCKLOCK_IBE_OPTS.dsts.H1_G1, conditionBytes);
