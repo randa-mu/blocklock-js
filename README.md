@@ -50,7 +50,7 @@ async function main() {
   // User wallet
   const wallet = new ethers.Wallet("your-private-key", ethers.provider);
   // User contract
-  const mockBlocklockReceiver = MockBlocklockReceiver__factory.connect("user blocklcok receiver contract address", wallet);
+  const mockBlocklockReceiver = MockBlocklockReceiver__factory.connect("user blocklock receiver contract address", wallet);
 
   // Ensure plainTextValue is initially 0
   console.log("Initial plainTextValue:", (await mockBlocklockReceiver.plainTextValue()).toString());
