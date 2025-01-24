@@ -1,4 +1,4 @@
-import { AbiCoder } from "ethers";
+import { AbiCoder, BigNumberish } from "ethers";
 
 export class SolidityEncoder {
   private abiCoder: AbiCoder;
@@ -9,11 +9,11 @@ export class SolidityEncoder {
 
   // ------------------- ENCODERS -------------------
 
-  encodeUint256(value: number | string | bigint): string {
+  encodeUint256(value: number | string | BigNumberish): string {
     return this.abiCoder.encode(["uint256"], [value]);
   }
 
-  encodeInt256(value: number | string | bigint): string {
+  encodeInt256(value: number | string | BigNumberish): string {
     return this.abiCoder.encode(["int256"], [value]);
   }
 
@@ -40,7 +40,7 @@ export class SolidityEncoder {
     return this.abiCoder.encode(["bytes"], [value]);
   }
 
-  encodeUint256Array(values: (number | string | bigint)[]): string {
+  encodeUint256Array(values: (number | string | BigNumberish)[]): string {
     return this.abiCoder.encode(["uint256[]"], [values]);
   }
 

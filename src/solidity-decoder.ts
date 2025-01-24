@@ -1,4 +1,4 @@
-import { AbiCoder } from "ethers";
+import { AbiCoder, BigNumberish } from "ethers";
 
 export class SolidityDecoder {
   private abiCoder: AbiCoder;
@@ -9,11 +9,11 @@ export class SolidityDecoder {
 
   // ------------------- DECODERS -------------------
 
-  decodeUint256(data: string): bigint {
+  decodeUint256(data: string): BigNumberish {
     return this.abiCoder.decode(["uint256"], data)[0];
   }
 
-  decodeInt256(data: string): bigint {
+  decodeInt256(data: string): BigNumberish {
     return this.abiCoder.decode(["int256"], data)[0];
   }
 
@@ -37,7 +37,7 @@ export class SolidityDecoder {
     return this.abiCoder.decode(["bytes"], data)[0];
   }
 
-  decodeUint256Array(data: string): bigint[] {
+  decodeUint256Array(data: string): BigNumberish[] {
     return this.abiCoder.decode(["uint256[]"], data)[0];
   }
 
