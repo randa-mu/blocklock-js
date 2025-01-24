@@ -27,6 +27,7 @@ Solidity interfaces used for on-chain decryption requests can be found in the [c
 To build the library, run the following command:
 
 ```sh
+npm install
 npm run build
 ```
 
