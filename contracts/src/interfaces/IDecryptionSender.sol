@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {TypesLib} from "./TypesLib.sol";
+import {TypesLib} from "../libraries/TypesLib.sol";
 
 /// @notice Smart contract that stores and conditionally decrypts encrypted messages / data
-interface IDecryptionProvider {
+interface IDecryptionSender {
     /// Setters
 
     /// @notice Registers a Ciphertext and associated conditions for decryption
@@ -14,8 +14,8 @@ interface IDecryptionProvider {
     /// @param conditions The conditions that need to be met to decrypt the ciphertext
     /// @return requestID The unique ID assigned to the registered decryption request
     function registerCiphertext(string calldata schemeID, bytes calldata ciphertext, bytes calldata conditions)
-    external
-    returns (uint256 requestID);
+        external
+        returns (uint256 requestID);
 
     /**
      * @notice Provide the decryption key for a specific requestID alongside a signature.
@@ -28,7 +28,7 @@ interface IDecryptionProvider {
      * @param signature The signature associated with the request, provided as a byte array
      */
     function fulfilDecryptionRequest(uint256 requestID, bytes calldata decryptionKey, bytes calldata signature)
-    external;
+        external;
 
     // Getters
 
