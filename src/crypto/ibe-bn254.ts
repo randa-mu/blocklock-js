@@ -50,7 +50,7 @@ export const DEFAULT_OPTS: IbeOpts = {
     }
 }
 
-// Our H4 hash function can output at most 2**16 - 1 = 65536 pseudorandom bytes.
+// Our H4 hash function can output at most 2**16 - 1 = 65535 pseudorandom bytes.
 const H4_MAX_OUTPUT_LEN: number = 65535
 
 /*
@@ -65,7 +65,7 @@ export function get_identity_g1(identity: Uint8Array, opts: IbeOpts = DEFAULT_OP
  * with the identity on G1, and the master public key on G2.
  */
 export function encrypt_towards_identity_g1(m: Uint8Array, identity: Uint8Array, pk_g2: G2, opts: IbeOpts = DEFAULT_OPTS): Ciphertext {
-    // We can encrypt at most 2**16 - 1 = 65536 bytes with our H4 hash function.
+    // We can encrypt at most 2**16 - 1 = 65535 bytes with our H4 hash function.
     const n_bytes = m.length
     if (n_bytes > H4_MAX_OUTPUT_LEN) {
         throw new Error(`cannot encrypt messages larger than our hash output: ${H4_MAX_OUTPUT_LEN} bytes.`)
