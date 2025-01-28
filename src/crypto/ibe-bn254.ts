@@ -123,7 +123,7 @@ export function decrypt_g1(ciphertext: Ciphertext, decryption_key_g1: G1, opts: 
 export function decrypt_g1_with_preprocess(ciphertext: Ciphertext, preprocessed_decryption_key: Uint8Array, opts: IbeOpts = DEFAULT_OPTS): Uint8Array {
     // Check well-formedness of the ciphertext
     if (ciphertext.W.length > H4_MAX_OUTPUT_LEN) {
-        throw new Error(`cannot encrypt messages larger than our hash output: ${H4_MAX_OUTPUT_LEN} bytes.`)
+        throw new Error(`cannot decrypt messages larger than our hash output: ${H4_MAX_OUTPUT_LEN} bytes.`)
     }
     if (ciphertext.V.length !== opts.hash.outputLen) {
         throw new Error(`cannot decrypt encryption key of invalid length != ${opts.hash.outputLen} bytes.`)
