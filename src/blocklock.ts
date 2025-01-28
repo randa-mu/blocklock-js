@@ -15,6 +15,7 @@ export type BlockLockPublicKey = {
     y: BigIntPair;
 };
 
+const BLOCKLOCK_MAX_MSG_LEN: number = 256
 
 const BLOCKLOCK_IBE_OPTS: IbeOpts = {
     hash: keccak_256,
@@ -151,6 +152,9 @@ export class Blocklock {
      * @returns encrypted message
      */
     encrypt(message: Uint8Array, blockHeight: bigint, pk: G2 = this.blocklockPublicKey): Ciphertext {
+        if (message.length > BLOCKLOCK_MAX_MSG_LEN) {
+            throw new Error(`cannot encrypt messages larger than ${BLOCKLOCK_MAX_MSG_LEN} bytes.`)
+        }
         const identity = blockHeightToBEBytes(blockHeight)
         return encrypt_towards_identity_g1(message, identity, pk, BLOCKLOCK_IBE_OPTS)
     }
@@ -162,6 +166,9 @@ export class Blocklock {
      * @returns plaintext
      */
     decrypt(ciphertext: Ciphertext, key: Uint8Array): Uint8Array {
+        if (ciphertext.W.length > BLOCKLOCK_MAX_MSG_LEN) {
+            throw new Error(`cannot decrypt messages larger than ${BLOCKLOCK_MAX_MSG_LEN} bytes.`)
+        }
         return decrypt_g1_with_preprocess(ciphertext, key, BLOCKLOCK_IBE_OPTS)
     }
 
