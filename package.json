@@ -1,5 +1,5 @@
 {
-  "name": "@randamu/blocklock-js",
+  "name": "blocklock-js",
   "version": "0.0.1",
   "description": "A library for encrypting and decrypting data for the future",
   "types": "index.d.ts",
