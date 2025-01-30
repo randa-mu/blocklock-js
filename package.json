@@ -26,6 +26,9 @@
   ],
   "author": "CluEleSsUK",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/randa-mu/blocklock-js.git"
