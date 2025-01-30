@@ -36,7 +36,7 @@ npm install blocklock-js
 
 #### Prerequisites
 
-* [ethers](https://www.npmjs.com/package/ethers)
+* [ethers](https://www.npmjs.com/package/ethers) for wallet setup and message encoding.
 
 
 Here’s how to use BlocklockJS to encrypt data and create an on-chain timelock encryption request.
