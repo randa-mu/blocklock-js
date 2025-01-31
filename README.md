@@ -46,20 +46,25 @@ Here’s how to use BlocklockJS to encrypt data and create an on-chain timelock 
 This example demonstrates encrypting a uint256 value and sending it to a user smart contract that implements the createTimelockRequest function. In a different use case, e.g., sealed bid auction, this could be refactored into a `sealedBid` function.
 The example user smart contract source code can be found [here](contracts/src/mocks/MockBlocklockReceiver.sol).
 
+First we connect to an RPC with a wallet, and create an instance of Blocklock and the user's smart contract through which the on-chain timelock encryption request will be made. This is so that the user's contract address receives the decryption key in a callback from the `decryptionSender` contract when the decryption block number has been mined.
+
 ```js
 import { ethers, getBytes } from "ethers";
 import { Blocklock, SolidityEncoder, encodeCiphertextToSolidity } from "blocklock-js";
 import { MockBlocklockReceiver__factory } from "../types"; // Users' solidity contract TypeScript binding
 
 async function main() {
+  const rpc = new ethers.JsonRpcProvider(rpcAddr)
   // User wallet
-  const wallet = new ethers.Wallet("your-private-key", ethers.provider);
-  // User contract
+  const wallet = new ethers.Wallet("your-private-key", rpc);
+  // Blocklockjs instance
+  const blocklockjs = new Blocklock(wallet, "blocklockSender contract proxy address");
+  // Initialise user contract
   const mockBlocklockReceiver = MockBlocklockReceiver__factory.connect("user blocklcok receiver contract address", wallet);
+```
 
-  // Ensure plainTextValue is initially 0
-  console.log("Initial plainTextValue:", (await mockBlocklockReceiver.plainTextValue()).toString());
-
+Next step will be to perform the encryption and call the function in the user's smart contract (e.g., a sealed bid auction contract) that will make the on-chain timelock encryption request.
+```js
   // Set block height (current block + 2)
   const blockHeight = BigInt(await ethers.provider.getBlockNumber() + 2);
 
@@ -72,7 +77,6 @@ async function main() {
   const encodedMessage = getBytes(msgBytes);
 
   // Encrypt the encoded message
-  const blocklockjs = new Blocklock(wallet, "blocklockSender contract address");
   const ciphertext = blocklockjs.encrypt(encodedMessage, blockHeight);
 
   // Call `createTimelockRequest` on the user's contract
