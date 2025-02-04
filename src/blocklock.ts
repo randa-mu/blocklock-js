@@ -1,9 +1,9 @@
-import { getBytes, Provider, Signer, AbiCoder } from "ethers"
-import { keccak_256 } from "@noble/hashes/sha3"
-import { BlocklockSender, BlocklockSender__factory } from "./generated"
-import { TypesLib as BlocklockTypes } from "./generated/BlocklockSender"
-import { extractSingleLog } from "./ethers-utils"
-import { Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts } from "./crypto/ibe-bn254"
+import {getBytes, AbiCoder, ethers, AbstractSigner} from "ethers"
+import {keccak_256} from "@noble/hashes/sha3"
+import {BlocklockSender, BlocklockSender__factory} from "./generated"
+import {TypesLib as BlocklockTypes} from "./generated/BlocklockSender"
+import {extractSingleLog} from "./ethers-utils"
+import {Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts} from "./crypto/ibe-bn254"
 
 export type BigIntPair = {
     c0: bigint;
@@ -40,15 +40,29 @@ export const BLOCKLOCK_DEFAULT_PUBLIC_KEY: BlockLockPublicKey = {
     },
 };
 
+type GasParams = {
+    gasLimit: number
+    maxFeePerGas: bigint
+    maxPriorityFeePerGas: bigint
+}
+
+const filecoinGasParams: GasParams = {
+    gasLimit: 3_000_000_000,
+    maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
+    maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
+}
+
 const iface = BlocklockSender__factory.createInterface()
 
 export class Blocklock {
     private blocklockSender: BlocklockSender
     private blocklockPublicKey: any
+    private gasParams: GasParams
 
-    constructor(provider: Signer | Provider, private readonly blocklockSenderContractAddress: string, blocklockPublicKey: BlockLockPublicKey = BLOCKLOCK_DEFAULT_PUBLIC_KEY) {
-        this.blocklockSender = BlocklockSender__factory.connect(blocklockSenderContractAddress, provider)
+    constructor(signer: AbstractSigner, private readonly blocklockSenderContractAddress: string, blocklockPublicKey: BlockLockPublicKey = BLOCKLOCK_DEFAULT_PUBLIC_KEY, gasParams: GasParams = filecoinGasParams) {
+        this.blocklockSender = BlocklockSender__factory.connect(blocklockSenderContractAddress, signer)
         this.blocklockPublicKey = blocklockPublicKey
+        this.gasParams = filecoinGasParams
     }
 
     /**
@@ -57,12 +71,12 @@ export class Blocklock {
      * @param ciphertext encrypted message to store on chain
      * @returns blocklock request id as a string
      */
-    async requestBlocklock(blockHeight: bigint, ciphertext: BlocklockTypes.CiphertextStruct): Promise<string> {
-        // Request a blocklock at blockHeight
-        const tx = await this.blocklockSender.requestBlocklock(blockHeight, ciphertext)
-        const receipt = await tx.wait(1)
+    async requestBlocklock(blockHeight: bigint, ciphertext: BlocklockTypes.CiphertextStruct): Promise<bigint> {
+        await this.blocklockSender.requestBlocklock.staticCall(blockHeight, ciphertext)
+        const tx = await this.blocklockSender.requestBlocklock(blockHeight, ciphertext, this.gasParams)
+        const receipt = await tx.wait()
         if (!receipt) {
-            throw new Error("transaction has not been mined")
+            throw new Error("transaction was not mined")
         }
 
         const [requestID] = extractSingleLog(iface, receipt, this.blocklockSenderContractAddress, iface.getEvent("BlocklockRequested"))
@@ -72,26 +86,15 @@ export class Blocklock {
     /**
      * Fetch the details of a blocklock request, decryption key / signature excluded.
      * This function should be called to fetch pending blocklock requests.
-     * @param sRequestID blocklock request id
+     * @param requestId blocklock request id
      * @returns details of the blocklock request, undefined if not found
      */
-    async fetchBlocklockRequest(sRequestID: string): Promise<BlocklockRequest | undefined> {
-        const requestID = BigInt(sRequestID)
-
-        // Query BlocklockRequested event with correct requestID
-        const callbackFilter = this.blocklockSender.filters.BlocklockRequested(requestID)
-        const events = await this.blocklockSender.queryFilter(callbackFilter)
-
-        // We get exactly one result if it was successful
-        if (events.length === 0) {
-            return undefined;
-        } else if (events.length > 1) {
-            throw new Error("BlocklockRequested filter returned more than one result")
-        }
+    async fetchBlocklockRequest(requestId: bigint): Promise<BlocklockRequest | undefined> {
+        const request = await this.blocklockSender.getRequest.staticCall(requestId)
         return {
-            id: events[0].args.requestID.toString(),
-            blockHeight: events[0].args.blockHeight,
-            ciphertext: parseSolidityCiphertext(events[0].args.ciphertext)
+            id: request.decryptionRequestID,
+            blockHeight: request.blockHeight,
+            ciphertext: parseSolidityCiphertext(request.ciphertext)
         }
     }
 
@@ -99,13 +102,13 @@ export class Blocklock {
      * Fetch all blocklock requests, decryption keys / signatures excluded.
      * @returns a map with the details of each blocklock request
      */
-    async fetchAllBlocklockRequests(): Promise<Map<string, BlocklockRequest>> {
+    async fetchAllBlocklockRequests(): Promise<Map<bigint, BlocklockRequest>> {
         const requestFilter = this.blocklockSender.filters.BlocklockRequested()
         const requests = await this.blocklockSender.queryFilter(requestFilter)
 
         return new Map(Array.from(
             requests.map((event) => {
-                const requestID = event.args.requestID.toString()
+                const requestID = event.args.requestID
 
                 return [requestID, {
                     id: requestID,
@@ -120,27 +123,17 @@ export class Blocklock {
      * Fetch the status of a blocklock request, including the decryption key / signature if available.
      * This function should be called to fetch blocklock requests that have been fulfilled, or to check
      * whether it has been fulfilled or not.
-     * @param sRequestID blocklock request id
+     * @param requestId blocklock request id
      * @returns details of the blocklock request, undefined if not found
      */
-    async fetchBlocklockStatus(sRequestID: string): Promise<BlocklockStatus | undefined> {
-        const requestID = BigInt(sRequestID)
-        const callbackFilter = this.blocklockSender.filters.BlocklockCallbackSuccess(requestID)
-        const events = await this.blocklockSender.queryFilter(callbackFilter)
-
-        // We get exactly one result if it was successful
-        if (events.length == 0) {
-            // No callback yet, query the BlocklockRequested events instead
-            return await this.fetchBlocklockRequest(sRequestID)
-        } else if (events.length > 1) {
-            throw new Error("BlocklockCallbackSuccess filter returned more than one result")
-        }
+    async fetchBlocklockStatus(requestId: bigint): Promise<BlocklockStatus> {
+        const {blockHeight, ciphertext, decryptionKey} = await this.blocklockSender.getRequest.staticCall(requestId)
 
         return {
-            id: events[0].args.requestID.toString(),
-            blockHeight: events[0].args.blockHeight,
-            decryptionKey: events[0].args.decryptionKey,
-            ciphertext: parseSolidityCiphertext(events[0].args.ciphertext),
+            id: requestId,
+            blockHeight,
+            decryptionKey: getBytes(decryptionKey),
+            ciphertext: parseSolidityCiphertext(ciphertext),
         }
     }
 
@@ -180,50 +173,42 @@ export class Blocklock {
      * @returns the identifier of the blocklock request, and the ciphertext
      */
     async encryptAndRegister(message: Uint8Array, blockHeight: bigint, pk: G2 = this.blocklockPublicKey): Promise<{
-        id: string,
-        ct: Ciphertext
+        id: bigint,
+        ciphertext: Ciphertext
     }> {
-        const ct = this.encrypt(message, blockHeight, pk)
-        const id = await this.requestBlocklock(blockHeight, encodeCiphertextToSolidity(ct))
-        return {
-            id: id.toString(),
-            ct,
-        }
+        const ciphertext = this.encrypt(message, blockHeight, pk)
+        const id = await this.requestBlocklock(blockHeight, encodeCiphertextToSolidity(ciphertext))
+        return {id, ciphertext}
     }
 
     /**
      * Try to decrypt a ciphertext with a specific blocklock id.
-     * @param sRequestID blocklock id of the ciphertext to decrypt
+     * @param requestId blocklock id of the ciphertext to decrypt
      * @returns the plaintext if the decryption key is available, undefined otherwise
      */
-    async decryptWithId(sRequestID: string): Promise<Uint8Array | undefined> {
-        const status = await this.fetchBlocklockStatus(sRequestID)
+    async decryptWithId(requestId: bigint): Promise<Uint8Array> {
+        const status = await this.fetchBlocklockStatus(requestId)
         if (!status) {
             throw new Error("cannot find a request with this identifier")
         }
 
         // Decryption key has not been delivered yet, return
-        if (!status.decryptionKey) {
-            return
+        if (status.decryptionKey.length === 0) {
+            return new Uint8Array(0)
         }
 
-        // Deserialize ciphertext
-        const ct = status.ciphertext
-
-        // Get decryption key
-        const decryptionKey = getBytes(status.decryptionKey)
-        return this.decrypt(ct, decryptionKey)
+        return this.decrypt(status.ciphertext, status.decryptionKey)
     }
 }
 
 export type BlocklockRequest = {
-    id: string,
+    id: bigint,
     blockHeight: bigint,
     ciphertext: Ciphertext,
 }
 
 export type BlocklockStatus = BlocklockRequest & {
-    decryptionKey?: string,
+    decryptionKey: Uint8Array,
 }
 
 export function parseSolidityCiphertext(ciphertext: BlocklockTypes.CiphertextStructOutput): Ciphertext {
@@ -232,7 +217,7 @@ export function parseSolidityCiphertext(ciphertext: BlocklockTypes.CiphertextStr
     const uY0 = ciphertext.u.y[0]
     const uY1 = ciphertext.u.y[1]
     return {
-        U: { x: { c0: uX0, c1: uX1 }, y: { c0: uY0, c1: uY1 } },
+        U: {x: {c0: uX0, c1: uX1}, y: {c0: uY0, c1: uY1}},
         V: getBytes(ciphertext.v),
         W: getBytes(ciphertext.w),
     }
@@ -250,7 +235,7 @@ export function parseSolidityCiphertextString(ciphertext: string): Ciphertext {
     const uY0 = ct.u.y[0];
     const uY1 = ct.u.y[1];
     return {
-        U: { x: { c0: uX0, c1: uX1 }, y: { c0: uY0, c1: uY1 } },
+        U: {x: {c0: uX0, c1: uX1}, y: {c0: uY0, c1: uY1}},
         V: getBytes(ct.v),
         W: getBytes(ct.w),
     };

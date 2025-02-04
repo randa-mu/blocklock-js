@@ -167,10 +167,10 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
     }
 
     // Blocklock agent or server side
-    const blockRequest = await blocklockjs.fetchBlocklockRequest("1");
+    const blockRequest = await blocklockjs.fetchBlocklockRequest(1n);
     expect(blockRequest!.blockHeight).toBe(BigInt(blockHeight));
 
-    let blocklockRequestStatus = await blocklockjs.fetchBlocklockStatus("1")
+    let blocklockRequestStatus = await blocklockjs.fetchBlocklockStatus(1n)
     expect(blocklockRequestStatus!.blockHeight).toBe(BigInt(blockHeight));
     expect(blocklockRequestStatus?.decryptionKey).toBe(undefined);
 
@@ -212,7 +212,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
       iface.getEvent("BlocklockCallbackSuccess"),
     );
 
-    blocklockRequestStatus = await blocklockjs.fetchBlocklockStatus("1")
+    blocklockRequestStatus = await blocklockjs.fetchBlocklockStatus(1n)
     expect(blocklockRequestStatus!.blockHeight).toBe(blockHeight);
     expect(blocklockRequestStatus?.decryptionKey).not.toBe(undefined);
 

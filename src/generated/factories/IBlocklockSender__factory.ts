@@ -128,6 +128,11 @@ const _abi = [
             internalType: "bytes",
           },
           {
+            name: "decryptionKey",
+            type: "bytes",
+            internalType: "bytes",
+          },
+          {
             name: "callback",
             type: "address",
             internalType: "address",
@@ -189,6 +194,32 @@ const _abi = [
       },
     ],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setDecryptionSender",
+    inputs: [
+      {
+        name: "newDecryptionSender",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "string",
+        internalType: "string",
+      },
+    ],
+    stateMutability: "pure",
   },
 ] as const;
 
