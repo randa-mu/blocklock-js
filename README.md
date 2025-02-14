@@ -130,7 +130,7 @@ When using the library in web applications, there might be webpack errors such a
 ![Webpack require error](./documentation/images/webpack-require.png)
 
 
-To resolve this error, a solution is to update your `next.config.ts` if you use one to similar configurations for webpack below. 
+To resolve this error, one solution is to update your `next.config.ts` configuration file if you use one with similar configurations for webpack below. 
 
 ```ts
 import type { NextConfig } from "next";
