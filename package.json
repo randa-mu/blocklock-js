@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run clean && npm run build:solidity && npm run build:generate && npm run build:js && npm run build:types",
-    "build:solidity": "pushd ./blocklock-solidity && forge build && popd",
+    "build:solidity": "(cd ./blocklock-solidity && forge build && cd ..)",
     "build:generate": "mkdir -p src/generated && npx typechain --target ethers-v6 --out-dir src/generated './blocklock-solidity/out/*.sol/*.json'",
     "build:js": "esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=index.js",
     "build:types": "tsc --emitDeclarationOnly",
