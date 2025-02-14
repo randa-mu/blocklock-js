@@ -108,7 +108,7 @@ main().catch((error) => {
     * After the specified chain height, the on-chain timelock contract triggers a callback to the user's contract, providing the decryption key. The user's contract then calls the `decrypt` function in the `BlocklockSender` contract to perform on-chain decryption using the provided decryption key.
 
 
-### Supported Data Types
+#### Supported Data Types
 The library supports encoding and encryption of the following Solidity-compatible data types:
 
 * uint256
@@ -119,6 +119,44 @@ The library supports encoding and encryption of the following Solidity-compatibl
 * bytes32
 
 Use the `SolidityEncoder` to encode any of these types before encryption.
+
+
+### Common Errors
+
+#### Webpack Configuration
+
+When using the library in web applications, there might be webpack errors such as the one displayed below:
+
+![Webpack require error](./documentation/images/webpack-require.png)
+
+
+To resolve this error, a solution is to update your `next.config.ts` if you use one to similar configurations for webpack below. 
+
+```ts
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+   webpack: (config) => {
+     config.externals.push({
+       'node:crypto': 'crypto',
+     });
+     return config;
+  },
+};
+
+export default nextConfig;
+```
+
+In the library's Webpack configuration, the following setting is used:
+
+```javascript
+externals: {
+    'node:crypto': 'commonjs crypto',
+}
+```
+
+This configuration tells the bundler **not to include the `crypto` module** in the final bundle. Instead, it treats `'node:crypto'` as an **external dependency** and expects it to be available in the runtime environment. `'commonjs crypto'` ensures that the module is required using the **CommonJS format**, making it compatible with Node.js. This ensures compatibility with environments where the `crypto` module is natively available.
 
 
 ### Licensing
