@@ -5,8 +5,9 @@
   "types": "index.d.ts",
   "main": "index.js",
   "scripts": {
-    "build": "npm run clean && npm run build:js && npm run build:types",
-    "build:generate": "mkdir -p src/generated && npx typechain --target ethers-v6 --out-dir src/generated './contracts/out/*.sol/*.json'",
+    "build": "npm run clean && npm run build:solidity && npm run build:generate && npm run build:js && npm run build:types",
+    "build:solidity": "(cd ./blocklock-solidity && forge build && cd ..)",
+    "build:generate": "mkdir -p src/generated && npx typechain --target ethers-v6 --out-dir src/generated './blocklock-solidity/out/*.sol/*.json'",
     "build:js": "esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=index.js",
     "build:types": "tsc --emitDeclarationOnly",
     "clean": "rm -rf index.js index.d.ts",
@@ -57,7 +58,7 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
-    "typescript": "^5.6.3",
+    "typescript": "^5.7.3",
     "typescript-eslint": "^8.11.0"
   },
   "engines": {

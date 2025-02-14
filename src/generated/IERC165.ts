@@ -77,7 +77,7 @@ export interface IERC165 extends BaseContract {
   ): Promise<this>;
 
   supportsInterface: TypedContractMethod<
-    [interfaceId: BytesLike],
+    [interfaceID: BytesLike],
     [boolean],
     "view"
   >;
@@ -88,7 +88,7 @@ export interface IERC165 extends BaseContract {
 
   getFunction(
     nameOrSignature: "supportsInterface"
-  ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
+  ): TypedContractMethod<[interfaceID: BytesLike], [boolean], "view">;
 
   filters: {};
 }

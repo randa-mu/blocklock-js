@@ -162,6 +162,32 @@ const _abi = [
     ],
     stateMutability: "nonpayable",
   },
+  {
+    type: "function",
+    name: "setSignatureSchemeAddressProvider",
+    inputs: [
+      {
+        name: "newSignatureSchemeAddressProvider",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "version",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "string",
+        internalType: "string",
+      },
+    ],
+    stateMutability: "pure",
+  },
 ] as const;
 
 export class IDecryptionSender__factory {
