@@ -57,6 +57,8 @@ export interface IDecryptionSenderInterface extends Interface {
       | "getRequestInFlight"
       | "isInFlight"
       | "registerCiphertext"
+      | "setSignatureSchemeAddressProvider"
+      | "version"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -83,6 +85,11 @@ export interface IDecryptionSenderInterface extends Interface {
     functionFragment: "registerCiphertext",
     values: [string, BytesLike, BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "setSignatureSchemeAddressProvider",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "fulfilDecryptionRequest",
@@ -105,6 +112,11 @@ export interface IDecryptionSenderInterface extends Interface {
     functionFragment: "registerCiphertext",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "setSignatureSchemeAddressProvider",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 }
 
 export interface IDecryptionSender extends BaseContract {
@@ -178,6 +190,14 @@ export interface IDecryptionSender extends BaseContract {
     "nonpayable"
   >;
 
+  setSignatureSchemeAddressProvider: TypedContractMethod<
+    [newSignatureSchemeAddressProvider: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  version: TypedContractMethod<[], [string], "view">;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -212,6 +232,16 @@ export interface IDecryptionSender extends BaseContract {
     [bigint],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "setSignatureSchemeAddressProvider"
+  ): TypedContractMethod<
+    [newSignatureSchemeAddressProvider: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [string], "view">;
 
   filters: {};
 }

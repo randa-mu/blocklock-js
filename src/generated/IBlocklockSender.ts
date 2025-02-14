@@ -51,6 +51,7 @@ export declare namespace TypesLib {
     blockHeight: BigNumberish;
     ciphertext: TypesLib.CiphertextStruct;
     signature: BytesLike;
+    decryptionKey: BytesLike;
     callback: AddressLike;
   };
 
@@ -59,19 +60,26 @@ export declare namespace TypesLib {
     blockHeight: bigint,
     ciphertext: TypesLib.CiphertextStructOutput,
     signature: string,
+    decryptionKey: string,
     callback: string
   ] & {
     decryptionRequestID: bigint;
     blockHeight: bigint;
     ciphertext: TypesLib.CiphertextStructOutput;
     signature: string;
+    decryptionKey: string;
     callback: string;
   };
 }
 
 export interface IBlocklockSenderInterface extends Interface {
   getFunction(
-    nameOrSignature: "decrypt" | "getRequest" | "requestBlocklock"
+    nameOrSignature:
+      | "decrypt"
+      | "getRequest"
+      | "requestBlocklock"
+      | "setDecryptionSender"
+      | "version"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -86,6 +94,11 @@ export interface IBlocklockSenderInterface extends Interface {
     functionFragment: "requestBlocklock",
     values: [BigNumberish, TypesLib.CiphertextStruct]
   ): string;
+  encodeFunctionData(
+    functionFragment: "setDecryptionSender",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "decrypt", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getRequest", data: BytesLike): Result;
@@ -93,6 +106,11 @@ export interface IBlocklockSenderInterface extends Interface {
     functionFragment: "requestBlocklock",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "setDecryptionSender",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 }
 
 export interface IBlocklockSender extends BaseContract {
@@ -156,6 +174,14 @@ export interface IBlocklockSender extends BaseContract {
     "nonpayable"
   >;
 
+  setDecryptionSender: TypedContractMethod<
+    [newDecryptionSender: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  version: TypedContractMethod<[], [string], "view">;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -181,6 +207,16 @@ export interface IBlocklockSender extends BaseContract {
     [bigint],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "setDecryptionSender"
+  ): TypedContractMethod<
+    [newDecryptionSender: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [string], "view">;
 
   filters: {};
 }

@@ -13,17 +13,22 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: "actions/checkout@v4"
+        with:
+          submodules: recursive
 
       - name: Install nodejs 🔧
         uses: "actions/setup-node@v3"
         with:
           node-version: 22.3.0
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
       - name: Install dependencies
-        run: yarn install
-
-      - name: Test
-        run: yarn test
-
+        run: npm install
+      
       - name: Build
-        run: yarn build
+        run: npm run build
+        
+      - name: Test
+        run: npm run test

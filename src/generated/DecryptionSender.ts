@@ -55,31 +55,43 @@ export interface DecryptionSenderInterface extends Interface {
     nameOrSignature:
       | "ADMIN_ROLE"
       | "DEFAULT_ADMIN_ROLE"
+      | "UPGRADE_INTERFACE_VERSION"
       | "fulfilDecryptionRequest"
       | "getPublicKey"
       | "getPublicKeyBytes"
       | "getRequestInFlight"
       | "getRoleAdmin"
+      | "getRoleMember"
+      | "getRoleMemberCount"
+      | "getRoleMembers"
       | "grantRole"
       | "hasRole"
+      | "initialize"
       | "isInFlight"
       | "lastRequestID"
       | "multicall"
+      | "proxiableUUID"
       | "registerCiphertext"
       | "renounceRole"
       | "requestsInFlight"
       | "revokeRole"
+      | "setSignatureSchemeAddressProvider"
       | "signatureSchemeAddressProvider"
       | "supportsInterface"
+      | "upgradeToAndCall"
+      | "version"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
       | "DecryptionReceiverCallbackSuccess"
       | "DecryptionRequested"
+      | "Initialized"
       | "RoleAdminChanged"
       | "RoleGranted"
       | "RoleRevoked"
+      | "SignatureSchemeAddressProviderUpdated"
+      | "Upgraded"
   ): EventFragment;
 
   encodeFunctionData(
@@ -88,6 +100,10 @@ export interface DecryptionSenderInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -111,12 +127,33 @@ export interface DecryptionSenderInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getRoleMember",
+    values: [BytesLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleMemberCount",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleMembers",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "grantRole",
     values: [BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "hasRole",
     values: [BytesLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [
+      [BigNumberish, BigNumberish],
+      [BigNumberish, BigNumberish],
+      AddressLike,
+      AddressLike
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "isInFlight",
@@ -129,6 +166,10 @@ export interface DecryptionSenderInterface extends Interface {
   encodeFunctionData(
     functionFragment: "multicall",
     values: [BytesLike[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "proxiableUUID",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "registerCiphertext",
@@ -147,6 +188,10 @@ export interface DecryptionSenderInterface extends Interface {
     values: [BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "setSignatureSchemeAddressProvider",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "signatureSchemeAddressProvider",
     values?: undefined
   ): string;
@@ -154,10 +199,19 @@ export interface DecryptionSenderInterface extends Interface {
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "upgradeToAndCall",
+    values: [AddressLike, BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "version", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "ADMIN_ROLE", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -180,14 +234,31 @@ export interface DecryptionSenderInterface extends Interface {
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleMember",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleMemberCount",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getRoleMembers",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isInFlight", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "lastRequestID",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "proxiableUUID",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "registerCiphertext",
     data: BytesLike
@@ -202,6 +273,10 @@ export interface DecryptionSenderInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "setSignatureSchemeAddressProvider",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "signatureSchemeAddressProvider",
     data: BytesLike
   ): Result;
@@ -209,6 +284,11 @@ export interface DecryptionSenderInterface extends Interface {
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "upgradeToAndCall",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "version", data: BytesLike): Result;
 }
 
 export namespace DecryptionReceiverCallbackSuccessEvent {
@@ -257,6 +337,18 @@ export namespace DecryptionRequestedEvent {
     condition: string;
     ciphertext: string;
     requestedAt: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace InitializedEvent {
+  export type InputTuple = [version: BigNumberish];
+  export type OutputTuple = [version: bigint];
+  export interface OutputObject {
+    version: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -322,6 +414,30 @@ export namespace RoleRevokedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace SignatureSchemeAddressProviderUpdatedEvent {
+  export type InputTuple = [newSignatureSchemeAddressProvider: AddressLike];
+  export type OutputTuple = [newSignatureSchemeAddressProvider: string];
+  export interface OutputObject {
+    newSignatureSchemeAddressProvider: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace UpgradedEvent {
+  export type InputTuple = [implementation: AddressLike];
+  export type OutputTuple = [implementation: string];
+  export interface OutputObject {
+    implementation: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export interface DecryptionSender extends BaseContract {
   connect(runner?: ContractRunner | null): DecryptionSender;
   waitForDeployment(): Promise<this>;
@@ -369,6 +485,8 @@ export interface DecryptionSender extends BaseContract {
 
   DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
+  UPGRADE_INTERFACE_VERSION: TypedContractMethod<[], [string], "view">;
+
   fulfilDecryptionRequest: TypedContractMethod<
     [requestID: BigNumberish, decryptionKey: BytesLike, signature: BytesLike],
     [void],
@@ -391,6 +509,16 @@ export interface DecryptionSender extends BaseContract {
 
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
 
+  getRoleMember: TypedContractMethod<
+    [role: BytesLike, index: BigNumberish],
+    [string],
+    "view"
+  >;
+
+  getRoleMemberCount: TypedContractMethod<[role: BytesLike], [bigint], "view">;
+
+  getRoleMembers: TypedContractMethod<[role: BytesLike], [string[]], "view">;
+
   grantRole: TypedContractMethod<
     [role: BytesLike, account: AddressLike],
     [void],
@@ -403,11 +531,24 @@ export interface DecryptionSender extends BaseContract {
     "view"
   >;
 
+  initialize: TypedContractMethod<
+    [
+      x: [BigNumberish, BigNumberish],
+      y: [BigNumberish, BigNumberish],
+      owner: AddressLike,
+      _signatureSchemeAddressProvider: AddressLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
   isInFlight: TypedContractMethod<[requestID: BigNumberish], [boolean], "view">;
 
   lastRequestID: TypedContractMethod<[], [bigint], "view">;
 
   multicall: TypedContractMethod<[data: BytesLike[]], [string[]], "nonpayable">;
+
+  proxiableUUID: TypedContractMethod<[], [string], "view">;
 
   registerCiphertext: TypedContractMethod<
     [schemeID: string, ciphertext: BytesLike, condition: BytesLike],
@@ -442,6 +583,12 @@ export interface DecryptionSender extends BaseContract {
     "nonpayable"
   >;
 
+  setSignatureSchemeAddressProvider: TypedContractMethod<
+    [newSignatureSchemeAddressProvider: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
   signatureSchemeAddressProvider: TypedContractMethod<[], [string], "view">;
 
   supportsInterface: TypedContractMethod<
@@ -449,6 +596,14 @@ export interface DecryptionSender extends BaseContract {
     [boolean],
     "view"
   >;
+
+  upgradeToAndCall: TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
+  >;
+
+  version: TypedContractMethod<[], [string], "view">;
 
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
@@ -459,6 +614,9 @@ export interface DecryptionSender extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "DEFAULT_ADMIN_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "UPGRADE_INTERFACE_VERSION"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "fulfilDecryptionRequest"
@@ -484,6 +642,19 @@ export interface DecryptionSender extends BaseContract {
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;
   getFunction(
+    nameOrSignature: "getRoleMember"
+  ): TypedContractMethod<
+    [role: BytesLike, index: BigNumberish],
+    [string],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getRoleMemberCount"
+  ): TypedContractMethod<[role: BytesLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getRoleMembers"
+  ): TypedContractMethod<[role: BytesLike], [string[]], "view">;
+  getFunction(
     nameOrSignature: "grantRole"
   ): TypedContractMethod<
     [role: BytesLike, account: AddressLike],
@@ -498,6 +669,18 @@ export interface DecryptionSender extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "initialize"
+  ): TypedContractMethod<
+    [
+      x: [BigNumberish, BigNumberish],
+      y: [BigNumberish, BigNumberish],
+      owner: AddressLike,
+      _signatureSchemeAddressProvider: AddressLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "isInFlight"
   ): TypedContractMethod<[requestID: BigNumberish], [boolean], "view">;
   getFunction(
@@ -506,6 +689,9 @@ export interface DecryptionSender extends BaseContract {
   getFunction(
     nameOrSignature: "multicall"
   ): TypedContractMethod<[data: BytesLike[]], [string[]], "nonpayable">;
+  getFunction(
+    nameOrSignature: "proxiableUUID"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "registerCiphertext"
   ): TypedContractMethod<
@@ -544,11 +730,28 @@ export interface DecryptionSender extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "setSignatureSchemeAddressProvider"
+  ): TypedContractMethod<
+    [newSignatureSchemeAddressProvider: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "signatureSchemeAddressProvider"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "supportsInterface"
   ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "upgradeToAndCall"
+  ): TypedContractMethod<
+    [newImplementation: AddressLike, data: BytesLike],
+    [void],
+    "payable"
+  >;
+  getFunction(
+    nameOrSignature: "version"
+  ): TypedContractMethod<[], [string], "view">;
 
   getEvent(
     key: "DecryptionReceiverCallbackSuccess"
@@ -563,6 +766,13 @@ export interface DecryptionSender extends BaseContract {
     DecryptionRequestedEvent.InputTuple,
     DecryptionRequestedEvent.OutputTuple,
     DecryptionRequestedEvent.OutputObject
+  >;
+  getEvent(
+    key: "Initialized"
+  ): TypedContractEvent<
+    InitializedEvent.InputTuple,
+    InitializedEvent.OutputTuple,
+    InitializedEvent.OutputObject
   >;
   getEvent(
     key: "RoleAdminChanged"
@@ -584,6 +794,20 @@ export interface DecryptionSender extends BaseContract {
     RoleRevokedEvent.InputTuple,
     RoleRevokedEvent.OutputTuple,
     RoleRevokedEvent.OutputObject
+  >;
+  getEvent(
+    key: "SignatureSchemeAddressProviderUpdated"
+  ): TypedContractEvent<
+    SignatureSchemeAddressProviderUpdatedEvent.InputTuple,
+    SignatureSchemeAddressProviderUpdatedEvent.OutputTuple,
+    SignatureSchemeAddressProviderUpdatedEvent.OutputObject
+  >;
+  getEvent(
+    key: "Upgraded"
+  ): TypedContractEvent<
+    UpgradedEvent.InputTuple,
+    UpgradedEvent.OutputTuple,
+    UpgradedEvent.OutputObject
   >;
 
   filters: {
@@ -607,6 +831,17 @@ export interface DecryptionSender extends BaseContract {
       DecryptionRequestedEvent.InputTuple,
       DecryptionRequestedEvent.OutputTuple,
       DecryptionRequestedEvent.OutputObject
+    >;
+
+    "Initialized(uint64)": TypedContractEvent<
+      InitializedEvent.InputTuple,
+      InitializedEvent.OutputTuple,
+      InitializedEvent.OutputObject
+    >;
+    Initialized: TypedContractEvent<
+      InitializedEvent.InputTuple,
+      InitializedEvent.OutputTuple,
+      InitializedEvent.OutputObject
     >;
 
     "RoleAdminChanged(bytes32,bytes32,bytes32)": TypedContractEvent<
@@ -640,6 +875,28 @@ export interface DecryptionSender extends BaseContract {
       RoleRevokedEvent.InputTuple,
       RoleRevokedEvent.OutputTuple,
       RoleRevokedEvent.OutputObject
+    >;
+
+    "SignatureSchemeAddressProviderUpdated(address)": TypedContractEvent<
+      SignatureSchemeAddressProviderUpdatedEvent.InputTuple,
+      SignatureSchemeAddressProviderUpdatedEvent.OutputTuple,
+      SignatureSchemeAddressProviderUpdatedEvent.OutputObject
+    >;
+    SignatureSchemeAddressProviderUpdated: TypedContractEvent<
+      SignatureSchemeAddressProviderUpdatedEvent.InputTuple,
+      SignatureSchemeAddressProviderUpdatedEvent.OutputTuple,
+      SignatureSchemeAddressProviderUpdatedEvent.OutputObject
+    >;
+
+    "Upgraded(address)": TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
+    >;
+    Upgraded: TypedContractEvent<
+      UpgradedEvent.InputTuple,
+      UpgradedEvent.OutputTuple,
+      UpgradedEvent.OutputObject
     >;
   };
 }
