@@ -25,7 +25,7 @@ jobs:
         run: npm install
       
       - name: Build
-        run: npm run build:solidity && npm run build:generate && npm run build:js && npm run build:types
+        run: npm run build
         
       - name: Test
         run: npm run test
