@@ -13,7 +13,7 @@ Using this library, developers can:
 
 ### On-Chain Integration
 
-Solidity interfaces used for on-chain decryption requests can be found in the [contracts](./contracts) directory and the documentation for the solidity interfaces can be found in the [blocklock-solidity](github.com/randa-mu/blocklock-solidity.git) repository.
+Solidity interfaces used for on-chain decryption requests can be found in the [blocklock-solidity](./blocklock-solidity) directory and the documentation for the solidity interfaces can be found in the [blocklock-solidity](github.com/randa-mu/blocklock-solidity.git) repository.
 
 #### Smart Contract Addresses
 
