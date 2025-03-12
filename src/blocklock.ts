@@ -62,7 +62,7 @@ export class Blocklock {
     constructor(signer: AbstractSigner, private readonly blocklockSenderContractAddress: string, blocklockPublicKey: BlockLockPublicKey = BLOCKLOCK_DEFAULT_PUBLIC_KEY, gasParams: GasParams = filecoinGasParams) {
         this.blocklockSender = BlocklockSender__factory.connect(blocklockSenderContractAddress, signer)
         this.blocklockPublicKey = blocklockPublicKey
-        this.gasParams = filecoinGasParams
+        this.gasParams = gasParams
     }
 
     /**
