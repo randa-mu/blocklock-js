@@ -13,7 +13,7 @@ Using this library, developers can:
 
 ### On-Chain Integration
 
-Solidity interfaces and associated documentation for them can be found in the [blocklock-solidity](github.com/randa-mu/blocklock-solidity.git) repository.
+Solidity interfaces and associated documentation for them can be found in the [blocklock-solidity](https://github.com/randa-mu/blocklock-solidity.git) repository.
 
 #### Smart Contract Addresses
 
