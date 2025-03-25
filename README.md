@@ -44,7 +44,7 @@ Here’s how to use BlocklockJS to encrypt data and create an on-chain timelock 
 #### Example: Encrypting a uint256 (4 ETH) for Decryption 2 Blocks Later
 
 This example demonstrates encrypting a uint256 value and sending it to a user smart contract that implements the createTimelockRequest function. In a different use case, e.g., sealed bid auction, this could be refactored into a `sealedBid` function.
-The example user smart contract source code can be found [here](blocklock-solidity/src/mocks/MockBlocklockReceiver.sol).
+The example user smart contract source code can be found [here](https://github.com/randa-mu/blocklock-solidity/blob/main/src/mocks/MockBlocklockReceiver.sol).
 
 ```js
 import { ethers, getBytes } from "ethers";
