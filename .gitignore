@@ -3,6 +3,7 @@ cache/
 out/
 node_modules
 index.js
+dist
 *.d.ts
 
 contracts/out
