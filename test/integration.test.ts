@@ -120,7 +120,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
       UUPSProxy__factory.bytecode,
       wallet
     );
-    const uupsProxy = await UUPSProxy.deploy(
+    const decryptionSenderProxy = await UUPSProxy.deploy(
       await decryptionSenderImplementation.getAddress(),
       DecryptionSender.interface.encodeFunctionData("initialize", [
         [blocklock_default_pk.x.c0, blocklock_default_pk.x.c1],
@@ -129,8 +129,8 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
         schemeProviderAddr,
       ]),
     );
-    await uupsProxy.waitForDeployment();
-    const decryptionSender = DecryptionSender.attach(await uupsProxy.getAddress());
+    await decryptionSenderProxy.waitForDeployment();
+    const decryptionSender = DecryptionSender.attach(await decryptionSenderProxy.getAddress());
     const decryptionSenderInstance = DecryptionSender__factory.connect(await decryptionSender.getAddress(), wallet);
 
     // deploy blocklock sender
@@ -142,15 +142,15 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
     const blocklockSenderImplementation = await BlocklockSender.deploy();
     await blocklockSenderImplementation.waitForDeployment();
 
-    const uupsProxy2 = await UUPSProxy.deploy(
+    const blocklockSenderProxy = await UUPSProxy.deploy(
       await blocklockSenderImplementation.getAddress(),
       BlocklockSender.interface.encodeFunctionData("initialize", [
         await wallet.getAddress(),
         await decryptionSender.getAddress(),
       ]),
     );
-    await uupsProxy2.waitForDeployment();
-    const blocklockSender = BlocklockSender.attach(await uupsProxy2.getAddress());
+    await blocklockSenderProxy.waitForDeployment();
+    const blocklockSender = BlocklockSender.attach(await blocklockSenderProxy.getAddress());
 
     // deploy user mock decryption receiver contract
     const MockBlocklockReceiver = new ethers.ContractFactory(

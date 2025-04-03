@@ -1,6 +1,6 @@
 {
   "name": "blocklock-js",
-  "version": "0.0.3-rc1",
+  "version": "0.0.8-rc1",
   "description": "A library for encrypting and decrypting data for the future",
   "source": "src/index.ts",
   "main": "./dist/cjs/index.js",
