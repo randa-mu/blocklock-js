@@ -13,7 +13,7 @@ Using this library, developers can:
 
 ### On-Chain Integration
 
-Solidity interfaces used for on-chain decryption requests can be found in the [blocklock-solidity](./blocklock-solidity) directory and the documentation for the solidity interfaces can be found in the [blocklock-solidity](github.com/randa-mu/blocklock-solidity.git) repository.
+Solidity interfaces and associated documentation for them can be found in the [blocklock-solidity](https://github.com/randa-mu/blocklock-solidity.git) repository.
 
 #### Smart Contract Addresses
 
@@ -44,7 +44,7 @@ Here’s how to use BlocklockJS to encrypt data and create an on-chain timelock 
 #### Example: Encrypting a uint256 (4 ETH) for Decryption 2 Blocks Later
 
 This example demonstrates encrypting a uint256 value and sending it to a user smart contract that implements the createTimelockRequest function. In a different use case, e.g., sealed bid auction, this could be refactored into a `sealedBid` function.
-The example user smart contract source code can be found [here](contracts/src/mocks/MockBlocklockReceiver.sol).
+The example user smart contract source code can be found [here](https://github.com/randa-mu/blocklock-solidity/blob/main/src/mocks/MockBlocklockReceiver.sol).
 
 ```js
 import { ethers, getBytes } from "ethers";
@@ -167,6 +167,6 @@ This library is licensed under the MIT License which can be accessed [here](LICE
 
 Contributions are welcome! If you find a bug, have a feature request, or want to improve the code, feel free to open an issue or submit a pull request.
 
-### Acknowledgments
+### Acknowledgements
 
 Special thanks to the Filecoin Foundation for supporting the development of this library.

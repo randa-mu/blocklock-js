@@ -1,16 +1,35 @@
 {
   "name": "blocklock-js",
-  "version": "0.0.7",
+  "version": "0.0.8-rc1",
   "description": "A library for encrypting and decrypting data for the future",
-  "types": "index.d.ts",
-  "main": "index.js",
+  "source": "src/index.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/esm/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
-    "build": "npm run clean && npm run build:solidity && npm run build:generate && npm run build:js && npm run build:types",
+    "build": "npm run clean && npm run build:solidity && npm run build:generate && npm run build:esm && npm run build:cjs && npm run build:types",
     "build:solidity": "(cd ./blocklock-solidity && forge build && cd ..)",
     "build:generate": "mkdir -p src/generated && npx typechain --target ethers-v6 --out-dir src/generated './blocklock-solidity/out/*.sol/*.json'",
-    "build:js": "esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=index.js",
-    "build:types": "tsc --emitDeclarationOnly",
-    "clean": "rm -rf index.js index.d.ts",
+    "build:esm": "esbuild src/index.ts --bundle --platform=browser --format=esm --outdir=dist/esm --sourcemap --target=es2020 --out-extension:.js=.mjs",
+    "build:cjs": "esbuild src/index.ts --bundle --platform=node --format=cjs --outdir=dist/cjs --sourcemap --target=es2020 --out-extension:.js=.cjs",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist",
+    "clean": "rm -rf dist",
     "lint": "eslint src",
     "lint:fix": "eslint --fix",
     "test": "jest ./test/*.test.ts"
@@ -19,14 +38,14 @@
     "conditional",
     "timelock",
     "encryption",
-    "dcrypt",
+    "dcipher",
     "randamu",
     "threshold",
     "evm",
     "ethereum"
   ],
-  "author": "CluEleSsUK",
-  "license": "MIT",
+  "author": "randa.mu",
+  "license": "Apache-2.0/MIT",
   "publishConfig": {
     "access": "public"
   },
