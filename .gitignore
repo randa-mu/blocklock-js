@@ -6,11 +6,18 @@ index.js
 dist
 *.d.ts
 
+
+# env file for running tests
+.env
+
+# generated files
+src/generated
+
 contracts/out
 contracts/cache
 cache
 # Ignores development broadcast logs
-!/broadcast
+/broadcast
 /broadcast/*/31337/
 /broadcast/**/dry-run/
 

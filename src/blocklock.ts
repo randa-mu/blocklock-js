@@ -1,9 +1,10 @@
-import {getBytes, AbiCoder, ethers, AbstractSigner} from "ethers"
+import {getBytes, AbiCoder, ethers, Signer, Provider, BigNumberish} from "ethers"
 import {keccak_256} from "@noble/hashes/sha3"
-import {BlocklockSender, BlocklockSender__factory} from "./generated"
-import {TypesLib as BlocklockTypes} from "./generated/BlocklockSender"
 import {extractSingleLog} from "./ethers-utils"
 import {Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts} from "./crypto/ibe-bn254"
+import {toBigEndianBytes} from "./crypto/utils"
+import {BlocklockSender, BlocklockSender__factory} from "./generated"
+import { TypesLib } from "./generated/BlocklockSender"
 
 export type BigIntPair = {
     c0: bigint;
@@ -46,11 +47,23 @@ type GasParams = {
     maxPriorityFeePerGas: bigint
 }
 
+const defaultGasParams: GasParams = {
+    gasLimit: 1_000_000,
+    maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
+    maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
+}
+
 const filecoinGasParams: GasParams = {
     gasLimit: 3_000_000_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
 }
+
+/* addresses of the deployed contracts */
+export const FURNACE_TESTNET_CONTRACT_ADDRESS = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+export const FILECOIN_CALIBNET_CONTRACT_ADDRESS = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+export const BASE_SEPOLIA_CONTRACT_ADDRESS = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+export const POLYGON_POS_CONTRACT_ADDRESS = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
 
 const iface = BlocklockSender__factory.createInterface()
 
@@ -59,10 +72,58 @@ export class Blocklock {
     private blocklockPublicKey: any
     private gasParams: GasParams
 
-    constructor(signer: AbstractSigner, private readonly blocklockSenderContractAddress: string, blocklockPublicKey: BlockLockPublicKey = BLOCKLOCK_DEFAULT_PUBLIC_KEY, gasParams: GasParams = filecoinGasParams) {
+    constructor(
+        signer: Signer | Provider,
+        private readonly blocklockSenderContractAddress: string,
+        gasParams: GasParams = defaultGasParams,
+        blocklockPublicKey: BlockLockPublicKey = BLOCKLOCK_DEFAULT_PUBLIC_KEY,
+    ) {
         this.blocklockSender = BlocklockSender__factory.connect(blocklockSenderContractAddress, signer)
         this.blocklockPublicKey = blocklockPublicKey
         this.gasParams = gasParams
+    }
+
+    static createFilecoinCalibnet(rpc: Signer | Provider): Blocklock {
+        return new Blocklock(rpc, FILECOIN_CALIBNET_CONTRACT_ADDRESS, filecoinGasParams)
+    }
+
+    static createFurnace(rpc: Signer | Provider): Blocklock {
+        return new Blocklock(rpc, FURNACE_TESTNET_CONTRACT_ADDRESS)
+    }
+
+    static createBaseSepolia(rpc: Signer | Provider): Blocklock {
+        return new Blocklock(rpc, BASE_SEPOLIA_CONTRACT_ADDRESS)
+    }
+
+    static createPolygonPos(rpc: Signer | Provider): Blocklock {
+        return new Blocklock(rpc, POLYGON_POS_CONTRACT_ADDRESS)
+    }
+
+    static createFromChainId(rpc: Signer | Provider, chainId: BigNumberish): Blocklock {
+        switch (chainId.toString().toLowerCase()) {
+            case "314159":
+            case "314159n":
+            case "0x4cb2f":
+                return Blocklock.createFilecoinCalibnet(rpc)
+
+            case "64630":
+            case "64630n":
+            case "0xfc76":
+                return Blocklock.createFurnace(rpc)
+
+            case "84532":
+            case "84532n":
+            case "0x14a34":
+                return Blocklock.createBaseSepolia(rpc)
+
+            case "137":
+            case "137n":
+            case "0x89":
+                return Blocklock.createPolygonPos(rpc)
+
+            default:
+                throw new Error("unsupported chainId :(")
+        }
     }
 
     /**
@@ -71,7 +132,7 @@ export class Blocklock {
      * @param ciphertext encrypted message to store on chain
      * @returns blocklock request id as a string
      */
-    async requestBlocklock(blockHeight: bigint, ciphertext: BlocklockTypes.CiphertextStruct): Promise<bigint> {
+    async requestBlocklock(blockHeight: bigint, ciphertext: TypesLib.CiphertextStruct): Promise<bigint> {
         await this.blocklockSender.requestBlocklock.staticCall(blockHeight, ciphertext)
         const tx = await this.blocklockSender.requestBlocklock(blockHeight, ciphertext, this.gasParams)
         const receipt = await tx.wait()
@@ -148,7 +209,7 @@ export class Blocklock {
         if (message.length > BLOCKLOCK_MAX_MSG_LEN) {
             throw new Error(`cannot encrypt messages larger than ${BLOCKLOCK_MAX_MSG_LEN} bytes.`)
         }
-        const identity = blockHeightToBEBytes(blockHeight)
+        const identity = toBigEndianBytes(blockHeight)
         return encrypt_towards_identity_g1(message, identity, pk, BLOCKLOCK_IBE_OPTS)
     }
 
@@ -211,7 +272,7 @@ export type BlocklockStatus = BlocklockRequest & {
     decryptionKey: Uint8Array,
 }
 
-export function parseSolidityCiphertext(ciphertext: BlocklockTypes.CiphertextStructOutput): Ciphertext {
+export function parseSolidityCiphertext(ciphertext: TypesLib.CiphertextStructOutput): Ciphertext {
     const uX0 = ciphertext.u.x[0]
     const uX1 = ciphertext.u.x[1]
     const uY0 = ciphertext.u.y[0]
@@ -225,7 +286,7 @@ export function parseSolidityCiphertext(ciphertext: BlocklockTypes.CiphertextStr
 
 export function parseSolidityCiphertextString(ciphertext: string): Ciphertext {
     const ctBytes = getBytes(ciphertext);
-    const ct: BlocklockTypes.CiphertextStructOutput = AbiCoder.defaultAbiCoder().decode(
+    const ct: TypesLib.CiphertextStructOutput = AbiCoder.defaultAbiCoder().decode(
         ["tuple(tuple(uint256[2] x, uint256[2] y) u, bytes v, bytes w)"],
         ctBytes,
     )[0];
@@ -241,7 +302,7 @@ export function parseSolidityCiphertextString(ciphertext: string): Ciphertext {
     };
 }
 
-export function encodeCiphertextToSolidity(ciphertext: Ciphertext): BlocklockTypes.CiphertextStruct {
+export function encodeCiphertextToSolidity(ciphertext: Ciphertext): TypesLib.CiphertextStruct {
     const u: { x: [bigint, bigint], y: [bigint, bigint] } = {
         x: [ciphertext.U.x.c0, ciphertext.U.x.c1],
         y: [ciphertext.U.y.c0, ciphertext.U.y.c1]
@@ -254,13 +315,3 @@ export function encodeCiphertextToSolidity(ciphertext: Ciphertext): BlocklockTyp
     }
 }
 
-function blockHeightToBEBytes(blockHeight: bigint) {
-    const buffer = new ArrayBuffer(32)
-    const dataView = new DataView(buffer)
-    dataView.setBigUint64(0, (blockHeight >> 192n) & 0xffff_ffff_ffff_ffffn)
-    dataView.setBigUint64(8, (blockHeight >> 128n) & 0xffff_ffff_ffff_ffffn)
-    dataView.setBigUint64(16, (blockHeight >> 64n) & 0xffff_ffff_ffff_ffffn)
-    dataView.setBigUint64(24, blockHeight & 0xffff_ffff_ffff_ffffn)
-
-    return new Uint8Array(buffer)
-}

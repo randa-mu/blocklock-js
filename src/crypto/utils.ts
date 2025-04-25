@@ -12,3 +12,14 @@ export function xor(a: Uint8Array, b: Uint8Array): Uint8Array {
 
     return ret
 }
+
+export function toBigEndianBytes(n: bigint) {
+    const buffer = new ArrayBuffer(32)
+    const dataView = new DataView(buffer)
+    dataView.setBigUint64(0, (n >> 192n) & 0xffff_ffff_ffff_ffffn)
+    dataView.setBigUint64(8, (n >> 128n) & 0xffff_ffff_ffff_ffffn)
+    dataView.setBigUint64(16, (n >> 64n) & 0xffff_ffff_ffff_ffffn)
+    dataView.setBigUint64(24, n & 0xffff_ffff_ffff_ffffn)
+
+    return new Uint8Array(buffer)
+}
