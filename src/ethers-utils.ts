@@ -1,5 +1,15 @@
 // extracts an event log of a given type from a transaction receipt that matches the address provided
-import {AbiCoder, EthersError, EventFragment, getBytes, Interface, Result, TransactionReceipt} from "ethers"
+import {
+    AbiCoder,
+    BytesLike,
+    EthersError,
+    EventFragment,
+    getBytes,
+    Interface,
+    ParamType,
+    Result,
+    TransactionReceipt
+} from "ethers"
 import {Ciphertext} from "./crypto/ibe-bn254"
 import {TypesLib} from "./generated/BlocklockSender"
 
@@ -46,10 +56,21 @@ export function isEthersError(error: unknown): error is EthersError {
     return (error as EthersError)?.code !== undefined;
 }
 
+// any because that's how naughty ethers wants it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const encodeParams = (dataTypes: readonly ParamType[] | readonly string[], data: readonly any[]): string => {
+    const abiCoder = AbiCoder.defaultAbiCoder()
+    return abiCoder.encode(dataTypes, data)
+}
+
+export const decodeParams= (dataTypes: readonly ParamType[] | readonly string[], data: BytesLike): Result => {
+    const abiCoder = AbiCoder.defaultAbiCoder()
+    return abiCoder.decode(dataTypes, data)
+}
 
 export function parseSolidityCiphertextString(ciphertext: string): Ciphertext {
     const ctBytes = getBytes(ciphertext);
-    const ct: TypesLib.CiphertextStructOutput = AbiCoder.defaultAbiCoder().decode(
+    const ct: TypesLib.CiphertextStructOutput = decodeParams(
         ["tuple(tuple(uint256[2] x, uint256[2] y) u, bytes v, bytes w)"],
         ctBytes,
     )[0];
