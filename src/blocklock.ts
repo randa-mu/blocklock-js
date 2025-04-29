@@ -1,10 +1,14 @@
-import {getBytes, AbiCoder, ethers, Signer, Provider, BigNumberish} from "ethers"
+import {getBytes, AbiCoder, ethers, Signer, Provider, BigNumberish, BytesLike} from "ethers"
 import {keccak_256} from "@noble/hashes/sha3"
-import {extractSingleLog} from "./ethers-utils"
+import {
+    encodeCiphertextToSolidity,
+    extractErrorMessage,
+    extractSingleLog,
+    parseSolidityCiphertext
+} from "./ethers-utils"
 import {Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts} from "./crypto/ibe-bn254"
-import {toBigEndianBytes} from "./crypto/utils"
 import {BlocklockSender, BlocklockSender__factory} from "./generated"
-import { TypesLib } from "./generated/BlocklockSender"
+import {TypesLib} from "./generated/BlocklockSender"
 
 export type BigIntPair = {
     c0: bigint;
@@ -60,10 +64,10 @@ const filecoinGasParams: GasParams = {
 }
 
 /* addresses of the deployed contracts */
-export const FURNACE_TESTNET_CONTRACT_ADDRESS = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
-export const FILECOIN_CALIBNET_CONTRACT_ADDRESS = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
-export const BASE_SEPOLIA_CONTRACT_ADDRESS = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
-export const POLYGON_POS_CONTRACT_ADDRESS = "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+export const FURNACE_TESTNET_CONTRACT_ADDRESS = "0x241B6D7A4c4fb592e796094bf31A41c12b61d7fe"
+export const FILECOIN_CALIBNET_CONTRACT_ADDRESS = "0xF8e2477647Ee6e33CaD4C915DaDc030b74AB976b"
+export const BASE_SEPOLIA_CONTRACT_ADDRESS = "0x14bFdD6D5C1E639bbC1F262a48217Ff6925e4197"
+export const POLYGON_POS_CONTRACT_ADDRESS = "0x14bFdD6D5C1E639bbC1F262a48217Ff6925e4197"
 
 const iface = BlocklockSender__factory.createInterface()
 
@@ -133,15 +137,20 @@ export class Blocklock {
      * @returns blocklock request id as a string
      */
     async requestBlocklock(blockHeight: bigint, ciphertext: TypesLib.CiphertextStruct): Promise<bigint> {
-        await this.blocklockSender.requestBlocklock.staticCall(blockHeight, ciphertext)
-        const tx = await this.blocklockSender.requestBlocklock(blockHeight, ciphertext, this.gasParams)
-        const receipt = await tx.wait()
-        if (!receipt) {
-            throw new Error("transaction was not mined")
-        }
+        const conditionBytes = encodeCondition(blockHeight)
+        const cost = await this.blocklockSender.calculateRequestPriceNative.staticCall(this.gasParams.gasLimit / 5)
+        try {
+            const tx = await this.blocklockSender.requestBlocklock(this.gasParams.gasLimit / 5, conditionBytes, ciphertext, {value: cost * 2n})
+            const receipt = await tx.wait()
+            if (!receipt) {
+                throw new Error("transaction was not mined")
+            }
 
         const [requestID] = extractSingleLog(iface, receipt, this.blocklockSenderContractAddress, iface.getEvent("BlocklockRequested"))
         return requestID
+        } catch (err: any) {
+            throw new Error(extractErrorMessage(err, iface))
+        }
     }
 
     /**
@@ -152,9 +161,10 @@ export class Blocklock {
      */
     async fetchBlocklockRequest(requestId: bigint): Promise<BlocklockRequest | undefined> {
         const request = await this.blocklockSender.getRequest.staticCall(requestId)
+        const blockHeight = decodeCondition(request.condition)
         return {
             id: request.decryptionRequestID,
-            blockHeight: request.blockHeight,
+            blockHeight: blockHeight,
             ciphertext: parseSolidityCiphertext(request.ciphertext)
         }
     }
@@ -169,11 +179,12 @@ export class Blocklock {
 
         return new Map(Array.from(
             requests.map((event) => {
-                const requestID = event.args.requestID
+                const id = event.args.requestID
+                const blockHeight = decodeCondition(event.args.condition)
 
-                return [requestID, {
-                    id: requestID,
-                    blockHeight: event.args.blockHeight,
+                return [id, {
+                    id,
+                    blockHeight,
                     ciphertext: parseSolidityCiphertext(event.args.ciphertext),
                 }]
             })
@@ -188,11 +199,11 @@ export class Blocklock {
      * @returns details of the blocklock request, undefined if not found
      */
     async fetchBlocklockStatus(requestId: bigint): Promise<BlocklockStatus> {
-        const {blockHeight, ciphertext, decryptionKey} = await this.blocklockSender.getRequest.staticCall(requestId)
+        const {condition, ciphertext, decryptionKey} = await this.blocklockSender.getRequest.staticCall(requestId)
 
         return {
             id: requestId,
-            blockHeight,
+            blockHeight: decodeCondition(condition),
             decryptionKey: getBytes(decryptionKey),
             ciphertext: parseSolidityCiphertext(ciphertext),
         }
@@ -209,7 +220,7 @@ export class Blocklock {
         if (message.length > BLOCKLOCK_MAX_MSG_LEN) {
             throw new Error(`cannot encrypt messages larger than ${BLOCKLOCK_MAX_MSG_LEN} bytes.`)
         }
-        const identity = toBigEndianBytes(blockHeight)
+        const identity = encodeCondition(blockHeight)
         return encrypt_towards_identity_g1(message, identity, pk, BLOCKLOCK_IBE_OPTS)
     }
 
@@ -272,46 +283,18 @@ export type BlocklockStatus = BlocklockRequest & {
     decryptionKey: Uint8Array,
 }
 
-export function parseSolidityCiphertext(ciphertext: TypesLib.CiphertextStructOutput): Ciphertext {
-    const uX0 = ciphertext.u.x[0]
-    const uX1 = ciphertext.u.x[1]
-    const uY0 = ciphertext.u.y[0]
-    const uY1 = ciphertext.u.y[1]
-    return {
-        U: {x: {c0: uX0, c1: uX1}, y: {c0: uY0, c1: uY1}},
-        V: getBytes(ciphertext.v),
-        W: getBytes(ciphertext.w),
-    }
+// encodes a block height condition with the correct prefix
+export function encodeCondition(blockHeight: bigint): Uint8Array {
+    const blockHeightBytes = getBytes(ethers.AbiCoder.defaultAbiCoder().encode(["uint256"], [blockHeight]))
+    // 0x42 is the magic 'B' tag for the `blockHeight` condition
+    return new Uint8Array([0x42, ...blockHeightBytes])
 }
 
-export function parseSolidityCiphertextString(ciphertext: string): Ciphertext {
-    const ctBytes = getBytes(ciphertext);
-    const ct: TypesLib.CiphertextStructOutput = AbiCoder.defaultAbiCoder().decode(
-        ["tuple(tuple(uint256[2] x, uint256[2] y) u, bytes v, bytes w)"],
-        ctBytes,
-    )[0];
-
-    const uX0 = ct.u.x[0];
-    const uX1 = ct.u.x[1];
-    const uY0 = ct.u.y[0];
-    const uY1 = ct.u.y[1];
-    return {
-        U: {x: {c0: uX0, c1: uX1}, y: {c0: uY0, c1: uY1}},
-        V: getBytes(ct.v),
-        W: getBytes(ct.w),
-    };
-}
-
-export function encodeCiphertextToSolidity(ciphertext: Ciphertext): TypesLib.CiphertextStruct {
-    const u: { x: [bigint, bigint], y: [bigint, bigint] } = {
-        x: [ciphertext.U.x.c0, ciphertext.U.x.c1],
-        y: [ciphertext.U.y.c0, ciphertext.U.y.c1]
+export function decodeCondition(bytes: BytesLike): bigint {
+    const b = getBytes(bytes)
+    if (b[0] !== 0x42) {
+        throw new Error("unexpected condition tag: expected `b` for blocklock!")
     }
-
-    return {
-        u,
-        v: ciphertext.V,
-        w: ciphertext.W,
-    }
+    const [round] = ethers.AbiCoder.defaultAbiCoder().decode(["uint256"], b.slice(1))
+    return round
 }
-
