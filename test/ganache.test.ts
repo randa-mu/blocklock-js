@@ -193,7 +193,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
 
         const ct = blocklockjs.encrypt(encodedMessage, blockHeight, blocklock_default_pk)
 
-        let tx = await mockBlocklockReceiverInstance.connect(wallet).createTimelockRequest(blockHeight, encodeCiphertextToSolidity(ct))
+        let tx = await mockBlocklockReceiverInstance.connect(wallet).createTimelockRequestWithDirectFunding(blockHeight, encodeCiphertextToSolidity(ct))
         let receipt = await tx.wait(1)
         if (!receipt) {
             throw new Error("transaction has not been mined")
