@@ -22,7 +22,7 @@ export type BlockLockPublicKey = {
 
 const BLOCKLOCK_MAX_MSG_LEN: number = 256
 
-const createBlocklockIbeOpts = (chainId: bigint) : IbeOpts => ({
+const createBlocklockIbeOpts = (chainId: bigint): IbeOpts => ({
     hash: keccak_256,
     k: 128,
     expand_fn: "xmd",
@@ -141,19 +141,16 @@ export class Blocklock {
      */
     async requestBlocklock(blockHeight: bigint, ciphertext: TypesLib.CiphertextStruct): Promise<bigint> {
         const conditionBytes = encodeCondition(blockHeight)
-        const cost = await this.blocklockSender.calculateRequestPriceNative.staticCall(this.gasParams.gasLimit / 5)
-        try {
-            const tx = await this.blocklockSender.requestBlocklock(this.gasParams.gasLimit / 5, conditionBytes, ciphertext, {value: cost * 2n})
-            const receipt = await tx.wait()
-            if (!receipt) {
-                throw new Error("transaction was not mined")
-            }
+        const requestPriceNative = await this.blocklockSender.calculateRequestPriceNative.staticCall(this.gasParams.gasLimit)
+        const cost = requestPriceNative / 20000000n
+        const tx = await this.blocklockSender.requestBlocklock(this.gasParams.gasLimit, conditionBytes, ciphertext, {value: cost * 2n})
+        const receipt = await tx.wait()
+        if (!receipt) {
+            throw new Error("transaction was not mined")
+        }
 
         const [requestID] = extractSingleLog(iface, receipt, this.blocklockSenderContractAddress, iface.getEvent("BlocklockRequested"))
         return requestID
-        } catch (err: any) {
-            throw new Error(extractErrorMessage(err, iface))
-        }
     }
 
     /**

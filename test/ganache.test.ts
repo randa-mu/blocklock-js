@@ -16,9 +16,7 @@ import {
 import {
     SolidityEncoder,
     Blocklock,
-    encodeCiphertextToSolidity,
-    parseSolidityCiphertextString,
-    extractSingleLog
+    extractSingleLog, encodeCiphertextToSolidity, parseSolidityCiphertextString
 } from "../src"
 import {IbeOpts, preprocess_decryption_key_g1} from "../src/crypto/ibe-bn254"
 
@@ -182,7 +180,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
         /** Blocklock js Integration */
 
             // User or client side
-        const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress())
+        const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress(), 31337n)
         const mockBlocklockReceiverInstance = MockBlocklockReceiver__factory.connect(await mockBlocklockReceiver.getAddress(), wallet)
 
         expect(await mockBlocklockReceiverInstance.plainTextValue()).toBe(BigInt(0))
@@ -228,7 +226,7 @@ describe("Blocklock blockchain integration tests with Ganache", () => {
         const sigPoint = bn254.G1.ProjectivePoint.fromHex(sigBytes)
         const decryption_key = preprocess_decryption_key_g1(parsedCiphertext, sigPoint, BLOCKLOCK_IBE_OPTS)
 
-        tx = await decryptionSenderInstance.connect(wallet).fulfilDecryptionRequest(requestID, decryption_key, sigBytes)
+        tx = await decryptionSenderInstance.connect(wallet).fulfillDecryptionRequest(requestID, decryption_key, sigBytes)
         receipt = await tx.wait(1)
         if (!receipt) {
             throw new Error("transaction has not been mined")

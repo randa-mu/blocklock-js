@@ -13,7 +13,8 @@ describe("blocklock", () => {
         dotenv.config()
     })
 
-    it("should encrypt and decrypt for furnace testnet", async () => {
+    // furnace is fucked right now - unskip once it lives
+    it.skip("should encrypt and decrypt for furnace testnet", async () => {
         const rpc = createProvider(process.env.FURNACE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FURNACE_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFurnace(wallet)
