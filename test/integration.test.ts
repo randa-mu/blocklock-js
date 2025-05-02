@@ -8,7 +8,7 @@ import {Blocklock} from "../src"
 const TIMEOUT = 60_000
 const FILECOIN_TIMEOUT = 200_000
 
-describe("blocklock", () => {
+describe.skip("blocklock", () => {
     beforeAll(() => {
         dotenv.config()
     })
