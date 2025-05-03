@@ -8,12 +8,12 @@ import {Blocklock} from "../src"
 const TIMEOUT = 60_000
 const FILECOIN_TIMEOUT = 200_000
 
-describe.skip("blocklock", () => {
+describe("blocklock", () => {
     beforeAll(() => {
         dotenv.config()
     })
 
-    // furnace is fucked right now - unskip once it lives
+    // furnace is down right now - unskip once it lives
     it.skip("should encrypt and decrypt for furnace testnet", async () => {
         const rpc = createProvider(process.env.FURNACE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FURNACE_PRIVATE_KEY || "", rpc))
@@ -21,21 +21,21 @@ describe.skip("blocklock", () => {
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
-    it("should encrypt and decrypt for filecoin calibnet", async () => {
+    it.only("should encrypt and decrypt for filecoin calibnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFilecoinCalibnet(wallet)
         await runEncryptionTest(rpc, blocklock)
     }, FILECOIN_TIMEOUT)
 
-    it("should encrypt and decrypt for polygon pos", async () => {
+    it.skip("should encrypt and decrypt for polygon pos", async () => {
         const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createPolygonPos(wallet)
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
-    it("should encrypt and decrypt for base sepolia", async () => {
+    it.skip("should encrypt and decrypt for base sepolia", async () => {
         const rpc = createProvider(process.env.BASE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createBaseSepolia(wallet)

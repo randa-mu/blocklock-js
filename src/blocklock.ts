@@ -52,20 +52,20 @@ type GasParams = {
 }
 
 const defaultGasParams: GasParams = {
-    gasLimit: 1_000_000,
+    gasLimit: 500_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
 }
 
 const filecoinGasParams: GasParams = {
-    gasLimit: 3_000_000_000,
+    gasLimit: defaultGasParams.gasLimit * 500,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
 }
 
-/* addresses of the deployed contracts */
+/* addresses of the deployed blocklockSender contracts */
 export const FURNACE_TESTNET_CONTRACT_ADDRESS = "0x241B6D7A4c4fb592e796094bf31A41c12b61d7fe"
-export const FILECOIN_CALIBNET_CONTRACT_ADDRESS = "0xF8e2477647Ee6e33CaD4C915DaDc030b74AB976b"
+export const FILECOIN_CALIBNET_CONTRACT_ADDRESS = "0xA2cc6E5bA4b8EaA4a85cbE43f7634E4431E8354C"
 export const BASE_SEPOLIA_CONTRACT_ADDRESS = "0x14bFdD6D5C1E639bbC1F262a48217Ff6925e4197"
 export const POLYGON_POS_CONTRACT_ADDRESS = "0x14bFdD6D5C1E639bbC1F262a48217Ff6925e4197"
 
@@ -142,8 +142,8 @@ export class Blocklock {
     async requestBlocklock(blockHeight: bigint, ciphertext: TypesLib.CiphertextStruct): Promise<bigint> {
         const conditionBytes = encodeCondition(blockHeight)
         const requestPriceNative = await this.blocklockSender.calculateRequestPriceNative.staticCall(this.gasParams.gasLimit)
-        const cost = requestPriceNative / 20000000n
-        const tx = await this.blocklockSender.requestBlocklock(this.gasParams.gasLimit, conditionBytes, ciphertext, {value: cost * 2n})
+        const cost = requestPriceNative 
+        const tx = await this.blocklockSender.requestBlocklock(this.gasParams.gasLimit, conditionBytes, ciphertext, {value: cost})
         const receipt = await tx.wait()
         if (!receipt) {
             throw new Error("transaction was not mined")

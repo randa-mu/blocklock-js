@@ -123,7 +123,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const dst = 'BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x0000000000000000000000000000000000000000000000000000000000007a69_'
         const dstHex = toHexString(dst)
         expect(await scheme.DST()).toBe(dstHex)
-        expect(dstHex).toBe(uint8ArrayToHexString(BLOCKLOCK_IBE_OPTS.dsts.H1_G1))
+        expect(await scheme.DST()).toBe(uint8ArrayToHexString(BLOCKLOCK_IBE_OPTS.dsts.H1_G1))
 
         const schemeProviderContract = SignatureSchemeAddressProvider__factory.connect(schemeProviderAddr, wallet)
         await schemeProviderContract.updateSignatureScheme(SCHEME_ID, await blocklockScheme.getAddress())
