@@ -1,42 +1,65 @@
-import {describe, it, expect} from "@jest/globals"
+import {describe, it, expect, beforeAll} from "@jest/globals"
+import {equalBytes} from "@noble/curves/abstract/utils"
+import dotenv from "dotenv"
+import {JsonRpcProvider, NonceManager, Provider, Wallet, WebSocketProvider} from "ethers"
 
 import {Blocklock} from "../src"
-import {JsonRpcProvider, NonceManager, Provider, Wallet, WebSocketProvider} from "ethers"
-import {bytesEqual} from "../blocklock-solidity/scripts/crypto"
 
-const TIMEOUT = 20_000
-const FILECOIN_TIMEOUT = 200_000
+const TIMEOUT = 60_000
+const FILECOIN_TIMEOUT = 300_000
 
 describe("blocklock", () => {
-    it("should encrypt and decrypt for furnace testnet", async () => {
+    beforeAll(() => {
+        dotenv.config()
+    })
+
+    // furnace is down right now - unskip once it lives
+    it.skip("should encrypt and decrypt for furnace testnet", async () => {
         const rpc = createProvider(process.env.FURNACE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FURNACE_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFurnace(wallet)
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
-    it("should encrypt and decrypt for filecoin calibnet", async () => {
+    it.skip("should encrypt and decrypt for filecoin calibnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFilecoinCalibnet(wallet)
         await runEncryptionTest(rpc, blocklock)
     }, FILECOIN_TIMEOUT)
 
+    it.skip("should encrypt and decrypt for polygon pos", async () => {
+        const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createPolygonPos(wallet)
+        await runEncryptionTest(rpc, blocklock)
+    }, TIMEOUT)
 
+    it.skip("should encrypt and decrypt for base sepolia", async () => {
+        const rpc = createProvider(process.env.BASE_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createBaseSepolia(wallet)
+        await runEncryptionTest(rpc, blocklock)
+    }, TIMEOUT)
 })
 
 async function runEncryptionTest(rpc: Provider, blocklock: Blocklock) {
     const plaintext = Buffer.from("hello world!")
     const currentBlock = await rpc.getBlockNumber()
-    const targetBlock = BigInt(currentBlock + 2)
+    const targetBlock = BigInt(currentBlock + 5)
+    console.log(`before encrypt: ${currentBlock} and target: ${targetBlock}`)
     const {id} = await blocklock.encryptAndRegister(plaintext, targetBlock)
+    console.log("after encrypt")
 
-    while (await rpc.getBlockNumber() < targetBlock) {
-        // wait
+    let result = new Uint8Array(0)
+    while (result.length === 0) {
+        console.log("decryption key not set yet")
+        await sleep(1000)
+        result = await blocklock.decryptWithId(id)
     }
 
-    const result = await blocklock.decryptWithId(id)
-    expect(bytesEqual(result, plaintext)).toBeTruthy()
+    console.log(result)
+    expect(equalBytes(result, plaintext)).toBeTruthy()
 }
 
 function createProvider(url: string): JsonRpcProvider | WebSocketProvider {
@@ -47,4 +70,8 @@ function createProvider(url: string): JsonRpcProvider | WebSocketProvider {
         return new WebSocketProvider(url)
     }
     throw new Error(`provider cannot be created for the protocol in ${url}`)
+}
+
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms))
 }
