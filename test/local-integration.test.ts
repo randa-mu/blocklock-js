@@ -61,7 +61,7 @@ let provider: ethers.JsonRpcProvider
 let wallet: ethers.Signer
 let accounts: ethers.Signer[]
 
-describe.skip("Blocklock blockchain integration tests with Anvil", () => {
+describe("Blocklock blockchain integration tests with Anvil", () => {
     beforeAll(async () => {
         console.log('Starting Anvil...')
         await startAnvil()
@@ -570,7 +570,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
 
         // assertion to ensure profit percentage is above threshold
         expect(profitPercent).toBeGreaterThanOrEqual(profitThresholdPercent);
-        
+
         console.log("Profit after tx in eth", ethers.formatEther(profitAfterTx.toString()))
         console.log("Expected tx cost in eth", ethers.formatEther(expectedTxCost.toString()))
         console.log("Native balance before tx:", ethers.formatEther(nativeBalance.toString()))

@@ -10,7 +10,7 @@ function uint8ArrayToHex(uint8Array: Uint8Array) {
   return '0x' + hexString;
 }
 
-describe.skip("Solidity encoding and decoding", () => {
+describe("Solidity encoding and decoding", () => {
   let encoder: SolidityEncoder;
   let decoder: SolidityDecoder;
 
