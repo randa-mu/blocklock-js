@@ -1,13 +1,13 @@
-import {getBytes, ethers, Signer, Provider, BigNumberish, BytesLike} from "ethers"
-import {keccak_256} from "@noble/hashes/sha3"
+import { getBytes, ethers, Signer, Provider, BigNumberish, BytesLike } from "ethers"
+import { keccak_256 } from "@noble/hashes/sha3"
 import {
     encodeCiphertextToSolidity,
     encodeParams,
     extractSingleLog, parseSolidityCiphertext,
 } from "./ethers-utils"
-import {Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts} from "./crypto/ibe-bn254"
-import {BlocklockSender, BlocklockSender__factory} from "./generated"
-import {TypesLib} from "./generated/BlocklockSender"
+import { Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts } from "./crypto/ibe-bn254"
+import { BlocklockSender, BlocklockSender__factory } from "./generated"
+import { TypesLib } from "./generated/BlocklockSender"
 
 export type BigIntPair = {
     c0: bigint;
@@ -51,7 +51,7 @@ type GasParams = {
 }
 
 const defaultGasParams: GasParams = {
-    gasLimit: 500_000,
+    gasLimit: 400_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
 }
@@ -75,6 +75,7 @@ export class Blocklock {
     private blocklockPublicKey: BlockLockPublicKey
     private ibeOpts: IbeOpts
     private gasParams: GasParams
+    private signer: Signer | Provider
 
     constructor(
         signer: Signer | Provider,
@@ -87,6 +88,7 @@ export class Blocklock {
         this.blocklockPublicKey = blocklockPublicKey
         this.gasParams = gasParams
         this.ibeOpts = createBlocklockIbeOpts(chainId)
+        this.signer = signer
     }
 
     static createFilecoinCalibnet(rpc: Signer | Provider): Blocklock {
@@ -141,45 +143,101 @@ export class Blocklock {
     async requestBlocklock(blockHeight: bigint, ciphertext: TypesLib.CiphertextStruct): Promise<bigint> {
         const conditionBytes = encodeCondition(blockHeight);
 
-        // Get request price (native token)
-        const requestPriceNative = await this.blocklockSender.calculateRequestPriceNative.staticCall(this.gasParams.gasLimit);
-        const cost = requestPriceNative;
-    
-        // Estimate gas usage for the request
+        // // Get request price (native token)
+        // const requestPriceNative = await this.blocklockSender.calculateRequestPriceNative.staticCall(this.gasParams.gasLimit);
+        // const cost = requestPriceNative // * 2n;
+        // console.log("request price", cost)
+
+        // // Estimate gas usage for the request
+        // const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
+        //     this.gasParams.gasLimit,
+        //     conditionBytes,
+        //     ciphertext,
+        //     { value: cost }
+        // );
+
+        // // Add a buffer to the gas estimate
+        // const gasBuffer = estimatedGas;// * 200n / 100n;
+
+        // // Send transaction with buffered gas limit
+        // const tx = await this.blocklockSender.requestBlocklock(
+        //     this.gasParams.gasLimit,
+        //     conditionBytes,
+        //     ciphertext,
+        //     {
+        //         value: cost,
+        //         gasLimit: gasBuffer,
+        //     }
+        // );
+
+        // 1. Get EIP-1559 fee data
+        const feeData = await this.signer.provider?.getFeeData();
+        const maxFeePerGas = feeData?.maxFeePerGas!;
+        const maxPriorityFeePerGas = feeData?.maxPriorityFeePerGas!;
+
+        const latestBlock = await this.signer.provider?.getBlock("latest");
+        const baseFeePerGas = latestBlock?.baseFeePerGas!;
+
+        // 2. Compute effective gas price (min of maxFeePerGas and base + priority)
+        // maxFeePerGas is the maximum total fee per unit of gas that a user is willing to pay.
+        // Also set by the user.
+        // Ensures users do not overpay during spikes in baseFeePerGas.
+        // Must satisfy: maxFeePerGas >= baseFeePerGas + maxPriorityFeePerGas
+        // where, maxPriorityFeePerGas is a tip for validators, and 
+        // baseFeePerGas is set by the network and represents the minimum gas price required to include a transaction in a block.
+        // It is burned, not paid to miners/validators. 
+        // Adjusts up or down depending on block congestion (target = 50% full).
+        const effectiveGasPrice =
+            maxFeePerGas < baseFeePerGas + maxPriorityFeePerGas ? maxFeePerGas : baseFeePerGas + maxPriorityFeePerGas;
+
+
+        // 3. Calculate the request price using the callback gas limit and the current network gas price
+        // at the time of the request, to avoid price changes at request time 
+        // if network gas price fluctuates quickly
+        // Request price estimation uses gas price or fallback gas price setting in blocklockSender fee configuration.
+        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
+            this.gasParams.gasLimit,
+            effectiveGasPrice
+        );
+
+        const valueToSend = requestPrice;
+
+        // 4. Estimate the gas cost of the request
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
             this.gasParams.gasLimit,
             conditionBytes,
             ciphertext,
-            { value: cost }
+            {
+                value: valueToSend,
+                maxFeePerGas,
+                maxPriorityFeePerGas,
+            }
         );
-    
-        // Add a buffer to the gas estimate (e.g., 100%)
-        // 2× the estimated gas, is a 100% increase (100% buffer).
-        const gasBuffer = estimatedGas * 200n / 100n;
-    
-        // Send transaction with buffered gas limit
+
+        // 5. Send the request
         const tx = await this.blocklockSender.requestBlocklock(
             this.gasParams.gasLimit,
             conditionBytes,
             ciphertext,
             {
-                value: cost,
-                gasLimit: gasBuffer,
+                value: valueToSend,
+                maxFeePerGas,
+                maxPriorityFeePerGas,
+                gasLimit: estimatedGas
             }
         );
-    
         const receipt = await tx.wait();
         if (!receipt) {
             throw new Error("Transaction was not mined");
         }
-    
+
         const [requestID] = extractSingleLog(
             iface,
             receipt,
             this.blocklockSenderContractAddress,
             iface.getEvent("BlocklockRequested")
         );
-    
+
         return requestID;
     }
 
@@ -229,7 +287,7 @@ export class Blocklock {
      * @returns details of the blocklock request, undefined if not found
      */
     async fetchBlocklockStatus(requestId: bigint): Promise<BlocklockStatus> {
-        const {condition, ciphertext, decryptionKey} = await this.blocklockSender.getRequest.staticCall(requestId)
+        const { condition, ciphertext, decryptionKey } = await this.blocklockSender.getRequest.staticCall(requestId)
 
         return {
             id: requestId,
@@ -280,7 +338,7 @@ export class Blocklock {
     }> {
         const ciphertext = this.encrypt(message, blockHeight, pk)
         const id = await this.requestBlocklock(blockHeight, encodeCiphertextToSolidity(ciphertext))
-        return {id, ciphertext}
+        return { id, ciphertext }
     }
 
     /**

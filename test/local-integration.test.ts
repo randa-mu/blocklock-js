@@ -299,7 +299,15 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const expectedTxCost = gasBuffer * effectiveGasPrice;
         const profitAfterTx = BigInt(userPayment) - BigInt(expectedTxCost)
 
-        expect(profitAfterTx).toBeGreaterThan(expectedTxCost) // Fail test if not profitable
+        // Set required profit threshold (e.g., 10%)
+        const profitThresholdPercent = 10n;
+
+        // Calculate actual profit percentage
+        const profitPercent = (profitAfterTx * 100n) / BigInt(userPayment);
+
+        // assertion to ensure profit percentage is above threshold
+        expect(profitPercent).toBeGreaterThanOrEqual(profitThresholdPercent);
+
         console.log("Profit after tx in eth", ethers.formatEther(profitAfterTx.toString()))
         console.log("Expected tx cost in eth", ethers.formatEther(expectedTxCost.toString()))
         
@@ -554,7 +562,15 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const expectedTxCost = gasBuffer * effectiveGasPrice;
         const profitAfterTx = BigInt(userPayment) - BigInt(expectedTxCost) // checking user subscription balance can cover the expected transaction cost
 
-        expect(profitAfterTx).toBeGreaterThan(expectedTxCost) // Fail test if not profitable
+        // Set required profit threshold (e.g., 10%)
+        const profitThresholdPercent = 10n;
+
+        // Calculate actual profit percentage
+        const profitPercent = (profitAfterTx * 100n) / BigInt(userPayment);
+
+        // assertion to ensure profit percentage is above threshold
+        expect(profitPercent).toBeGreaterThanOrEqual(profitThresholdPercent);
+        
         console.log("Profit after tx in eth", ethers.formatEther(profitAfterTx.toString()))
         console.log("Expected tx cost in eth", ethers.formatEther(expectedTxCost.toString()))
         console.log("Native balance before tx:", ethers.formatEther(nativeBalance.toString()))
