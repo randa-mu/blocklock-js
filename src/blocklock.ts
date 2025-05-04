@@ -140,17 +140,48 @@ export class Blocklock {
      * @returns blocklock request id as a string
      */
     async requestBlocklock(blockHeight: bigint, ciphertext: TypesLib.CiphertextStruct): Promise<bigint> {
-        const conditionBytes = encodeCondition(blockHeight)
-        const requestPriceNative = await this.blocklockSender.calculateRequestPriceNative.staticCall(this.gasParams.gasLimit)
-        const cost = requestPriceNative 
-        const tx = await this.blocklockSender.requestBlocklock(this.gasParams.gasLimit, conditionBytes, ciphertext, {value: cost})
-        const receipt = await tx.wait()
-        if (!receipt) {
-            throw new Error("transaction was not mined")
-        }
+        const conditionBytes = encodeCondition(blockHeight);
 
-        const [requestID] = extractSingleLog(iface, receipt, this.blocklockSenderContractAddress, iface.getEvent("BlocklockRequested"))
-        return requestID
+        // Get request price (native token)
+        const requestPriceNative = await this.blocklockSender.calculateRequestPriceNative.staticCall(this.gasParams.gasLimit);
+        const cost = requestPriceNative;
+    
+        // Estimate gas usage for the request
+        const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
+            this.gasParams.gasLimit,
+            conditionBytes,
+            ciphertext,
+            { value: cost }
+        );
+    
+        // Add a buffer to the gas estimate (e.g., 100%)
+        // 2× the estimated gas, is a 100% increase (100% buffer).
+        const gasBuffer = estimatedGas * 200n / 100n;
+    
+        // Send transaction with buffered gas limit
+        const tx = await this.blocklockSender.requestBlocklock(
+            this.gasParams.gasLimit,
+            conditionBytes,
+            ciphertext,
+            {
+                value: cost,
+                gasLimit: gasBuffer,
+            }
+        );
+    
+        const receipt = await tx.wait();
+        if (!receipt) {
+            throw new Error("Transaction was not mined");
+        }
+    
+        const [requestID] = extractSingleLog(
+            iface,
+            receipt,
+            this.blocklockSenderContractAddress,
+            iface.getEvent("BlocklockRequested")
+        );
+    
+        return requestID;
     }
 
     /**
