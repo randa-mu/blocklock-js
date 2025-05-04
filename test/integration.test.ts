@@ -28,7 +28,7 @@ describe("blocklock", () => {
         await runEncryptionTest(rpc, blocklock)
     }, FILECOIN_TIMEOUT)
 
-    it.skip("should encrypt and decrypt for polygon pos", async () => {
+    it.only("should encrypt and decrypt for polygon pos", async () => {
         const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createPolygonPos(wallet)
