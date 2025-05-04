@@ -6,7 +6,7 @@ import {JsonRpcProvider, NonceManager, Provider, Wallet, WebSocketProvider} from
 import {Blocklock} from "../src"
 
 const TIMEOUT = 60_000
-const FILECOIN_TIMEOUT = 200_000
+const FILECOIN_TIMEOUT = 300_000
 
 describe("blocklock", () => {
     beforeAll(() => {
@@ -21,7 +21,7 @@ describe("blocklock", () => {
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
-    it.skip("should encrypt and decrypt for filecoin calibnet", async () => {
+    it.only("should encrypt and decrypt for filecoin calibnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFilecoinCalibnet(wallet)

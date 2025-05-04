@@ -3,7 +3,6 @@ import {keccak_256} from "@noble/hashes/sha3"
 import {
     encodeCiphertextToSolidity,
     encodeParams,
-    extractErrorMessage,
     extractSingleLog, parseSolidityCiphertext,
 } from "./ethers-utils"
 import {Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts} from "./crypto/ibe-bn254"
@@ -65,7 +64,7 @@ const filecoinGasParams: GasParams = {
 
 /* addresses of the deployed blocklockSender contracts */
 export const FURNACE_TESTNET_CONTRACT_ADDRESS = "0x241B6D7A4c4fb592e796094bf31A41c12b61d7fe"
-export const FILECOIN_CALIBNET_CONTRACT_ADDRESS = "0xA2cc6E5bA4b8EaA4a85cbE43f7634E4431E8354C"
+export const FILECOIN_CALIBNET_CONTRACT_ADDRESS = "0xAaB3183BD6D68120B632632F23fed2B39Ffaf603"
 export const BASE_SEPOLIA_CONTRACT_ADDRESS = "0x14bFdD6D5C1E639bbC1F262a48217Ff6925e4197"
 export const POLYGON_POS_CONTRACT_ADDRESS = "0x14bFdD6D5C1E639bbC1F262a48217Ff6925e4197"
 
@@ -73,7 +72,7 @@ const iface = BlocklockSender__factory.createInterface()
 
 export class Blocklock {
     private blocklockSender: BlocklockSender
-    private blocklockPublicKey: any
+    private blocklockPublicKey: BlockLockPublicKey
     private ibeOpts: IbeOpts
     private gasParams: GasParams
 
