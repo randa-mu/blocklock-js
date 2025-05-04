@@ -21,7 +21,7 @@ describe("blocklock", () => {
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
-    it.only("should encrypt and decrypt for filecoin calibnet", async () => {
+    it.skip("should encrypt and decrypt for filecoin calibnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFilecoinCalibnet(wallet)

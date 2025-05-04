@@ -137,7 +137,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const decryptionSenderImplementation = await DecryptionSender.deploy()
         await decryptionSenderImplementation.waitForDeployment()
 
-        let UUPSProxy = new ethers.ContractFactory(
+        const UUPSProxy = new ethers.ContractFactory(
             UUPSProxy__factory.abi,
             UUPSProxy__factory.bytecode,
             wallet
@@ -232,7 +232,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
             .connect(wallet)
             .createTimelockRequestWithDirectFunding(callbackGasLimit, encodedCondition, encodeCiphertextToSolidity(ct))
 
-        let receipt = await tx.wait(1)
+        const receipt = await tx.wait(1)
         if (!receipt) {
             throw new Error("transaction has not been mined")
         }
@@ -388,7 +388,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const decryptionSenderImplementation = await DecryptionSender.deploy()
         await decryptionSenderImplementation.waitForDeployment()
 
-        let UUPSProxy = new ethers.ContractFactory(
+        const UUPSProxy = new ethers.ContractFactory(
             UUPSProxy__factory.abi,
             UUPSProxy__factory.bytecode,
             wallet
@@ -484,7 +484,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
             .connect(wallet)
             .createTimelockRequestWithSubscription(callbackGasLimit, encodedCondition, encodeCiphertextToSolidity(ct))
 
-        let receipt = await tx.wait(1)
+        const receipt = await tx.wait(1)
         if (!receipt) {
             throw new Error("transaction has not been mined")
         }
