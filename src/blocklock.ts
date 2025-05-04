@@ -143,33 +143,8 @@ export class Blocklock {
     async requestBlocklock(blockHeight: bigint, ciphertext: TypesLib.CiphertextStruct): Promise<bigint> {
         const conditionBytes = encodeCondition(blockHeight);
 
-        // // Get request price (native token)
-        // const requestPriceNative = await this.blocklockSender.calculateRequestPriceNative.staticCall(this.gasParams.gasLimit);
-        // const cost = requestPriceNative // * 2n;
-        // console.log("request price", cost)
-
-        // // Estimate gas usage for the request
-        // const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
-        //     this.gasParams.gasLimit,
-        //     conditionBytes,
-        //     ciphertext,
-        //     { value: cost }
-        // );
-
-        // // Add a buffer to the gas estimate
-        // const gasBuffer = estimatedGas;// * 200n / 100n;
-
-        // // Send transaction with buffered gas limit
-        // const tx = await this.blocklockSender.requestBlocklock(
-        //     this.gasParams.gasLimit,
-        //     conditionBytes,
-        //     ciphertext,
-        //     {
-        //         value: cost,
-        //         gasLimit: gasBuffer,
-        //     }
-        // );
-
+        // Get request price (native token)
+    
         // 1. Get EIP-1559 fee data
         const feeData = await this.signer.provider?.getFeeData();
         const maxFeePerGas = feeData?.maxFeePerGas!;
@@ -194,13 +169,14 @@ export class Blocklock {
         // 3. Calculate the request price using the callback gas limit and the current network gas price
         // at the time of the request, to avoid price changes at request time 
         // if network gas price fluctuates quickly
+        // also add a buffer to address network gas price changes before request tx is mined
         // Request price estimation uses gas price or fallback gas price setting in blocklockSender fee configuration.
         const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
             this.gasParams.gasLimit,
             effectiveGasPrice
         );
 
-        const valueToSend = requestPrice;
+        const valueToSend = requestPrice  * 110n / 100n;
 
         // 4. Estimate the gas cost of the request
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(

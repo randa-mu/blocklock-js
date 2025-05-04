@@ -21,6 +21,8 @@ describe("blocklock", () => {
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
+    // filecoin calibnet is very slow
+    // the test can take up to 260s
     it.skip("should encrypt and decrypt for filecoin calibnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
@@ -28,13 +30,14 @@ describe("blocklock", () => {
         await runEncryptionTest(rpc, blocklock)
     }, FILECOIN_TIMEOUT)
 
-    it.only("should encrypt and decrypt for polygon pos", async () => {
+    it.skip("should encrypt and decrypt for polygon pos", async () => {
         const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createPolygonPos(wallet)
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
+    // Base sepolia faucets give tiny token amounts
     it.skip("should encrypt and decrypt for base sepolia", async () => {
         const rpc = createProvider(process.env.BASE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
