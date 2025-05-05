@@ -14,7 +14,7 @@ describe("Blocklock integration tests with supported networks", () => {
     })
 
     // furnace is down right now - unskip once it lives
-    it.skip("should encrypt and decrypt for furnace testnet", async () => {
+    it("should encrypt and decrypt for furnace testnet", async () => {
         const rpc = createProvider(process.env.FURNACE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FURNACE_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFurnace(wallet)
@@ -23,14 +23,14 @@ describe("Blocklock integration tests with supported networks", () => {
 
     // filecoin calibnet is very slow
     // the test can take up to 260s
-    it.skip("should encrypt and decrypt for filecoin calibnet", async () => {
+    it("should encrypt and decrypt for filecoin calibnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFilecoinCalibnet(wallet)
         await runEncryptionTest(rpc, blocklock)
     }, FILECOIN_TIMEOUT)
 
-    it.skip("should encrypt and decrypt for polygon pos", async () => {
+    it("should encrypt and decrypt for polygon pos", async () => {
         const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createPolygonPos(wallet)
@@ -38,7 +38,7 @@ describe("Blocklock integration tests with supported networks", () => {
     }, TIMEOUT)
 
     // Base sepolia faucets give tiny token amounts
-    it.skip("should encrypt and decrypt for base sepolia", async () => {
+    it("should encrypt and decrypt for base sepolia", async () => {
         const rpc = createProvider(process.env.BASE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createBaseSepolia(wallet)
