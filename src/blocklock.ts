@@ -150,7 +150,7 @@ export class Blocklock {
         const maxFeePerGas = feeData?.maxFeePerGas!;
         const maxPriorityFeePerGas = feeData?.maxPriorityFeePerGas!;
 
-        // 2. Calculate the request price using the callback gas limit
+        // 2. Calculate the timelock encryption request price using the callback gas limit
         // Gas Price Used Off-Chain could become Outdated
         // `calculateRequestPriceNative(callbackGasLimit)` depends on the current gas price (tx.gasprice or block.basefee) at the time of execution.
         // When called off-chain, this is based on latest known block data.
@@ -169,7 +169,7 @@ export class Blocklock {
         // increase actual gas usage.
         const valueToSend = requestPrice  * 110n / 100n;
 
-        // 3. Estimate the gas cost of the request
+        // 3. Estimate the gas cost of the transaction
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
             this.gasParams.gasLimit,
             conditionBytes,
@@ -181,7 +181,7 @@ export class Blocklock {
             }
         );
 
-        // 4. Send the request
+        // 4. Send the transaction
         const tx = await this.blocklockSender.requestBlocklock(
             this.gasParams.gasLimit,
             conditionBytes,
