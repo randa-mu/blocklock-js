@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeAll, afterAll } from "@jest/globals"
-import { bn254 } from "@kevincharm/noble-bn254-drand"
-import { BlsBn254, serialiseG2Point } from "../src/crypto/bls-bn254";
-import { keccak_256 } from "@noble/hashes/sha3"
+import {describe, it, expect, beforeAll, afterAll} from "@jest/globals"
+import {keccak_256} from "@noble/hashes/sha3"
 import dotenv from "dotenv"
-import { ZeroAddress, ethers, getBytes, isHexString, toUtf8Bytes, AbiCoder } from "ethers"
-
+import {ZeroAddress, ethers, getBytes, isHexString, toUtf8Bytes, AbiCoder} from "ethers"
+import {BlsBn254} from "../src/crypto/bls-bn254"
 import {
     MockBlocklockReceiver__factory,
     BlocklockSender__factory,
@@ -19,11 +17,9 @@ import {
     extractSingleLog, encodeCiphertextToSolidity, parseSolidityCiphertextString,
     encodeCondition
 } from "../src"
-import { IbeOpts, preprocess_decryption_key_g1 } from "../src/crypto/ibe-bn254"
+import {IbeOpts, preprocess_decryption_key_g1} from "../src/crypto/ibe-bn254"
 
-dotenv.config()
-
-const blocklock_default_pk = {
+const BLOCKLOCK_PUBLIC_KEY = {
     x: {
         c0: BigInt("0x2691d39ecc380bfa873911a0b848c77556ee948fb8ab649137d3d3e78153f6ca"),
         c1: BigInt("0x2863e20a5125b098108a5061b31f405e16a069e9ebff60022f57f4c4fd0237bf"),
@@ -32,7 +28,8 @@ const blocklock_default_pk = {
         c0: BigInt("0x193513dbe180d700b189c529754f650b7b7882122c8a1e242a938d23ea9f765c"),
         c1: BigInt("0x11c939ea560caf31f552c9c4879b15865d38ba1dfb0f7a7d2ac46a4f0cae25ba"),
     },
-};
+}
+
 const BLOCKLOCK_IBE_OPTS: IbeOpts = {
     hash: keccak_256,
     k: 128,
@@ -51,7 +48,7 @@ const BLOCKLOCK_IBE_OPTS: IbeOpts = {
             "BLOCKLOCK_BN254_XMD:KECCAK-256_H4_0x0000000000000000000000000000000000000000000000000000000000007a69_",
         ),
     },
-};
+}
 
 const blsKey = process.env.BLS_KEY ?? ""
 const SCHEME_ID = "BN254-BLS-BLOCKLOCK"
@@ -63,10 +60,12 @@ let accounts: ethers.Signer[]
 
 describe.skip("Blocklock blockchain integration tests with Anvil", () => {
     beforeAll(async () => {
-        console.log('Starting Anvil...')
+        dotenv.config()
+
+        console.log("Starting Anvil...")
         await startAnvil()
 
-        console.log('Anvil is running. We can now connect via ethersjs.')
+        console.log("Anvil is running. We can now connect via ethersjs.")
 
         // Connect to Ganache with Ethers.js
         provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545")
@@ -79,7 +78,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
     })
 
     afterAll(async () => {
-        console.log('Stopping Anvil...')
+        console.log("Stopping Anvil...")
         await stopAnvil()
     })
 
@@ -95,12 +94,12 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
     it("can request blocklock decryption from user contract with direct funding and on-chain decryption", async () => {
         /** Smart Contract Deployments */
 
-        // deploy signature scheme address provider
+            // deploy signature scheme address provider
         const SignatureSchemeAddressProvider = new ethers.ContractFactory(
-            SignatureSchemeAddressProvider__factory.abi,
-            SignatureSchemeAddressProvider__factory.bytecode,
-            wallet,
-        )
+                SignatureSchemeAddressProvider__factory.abi,
+                SignatureSchemeAddressProvider__factory.bytecode,
+                wallet,
+            )
         const signatureSchemeAddressProvider = await SignatureSchemeAddressProvider.deploy(
             await wallet.getAddress()
         )
@@ -114,13 +113,13 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
             wallet,
         )
         const blocklockScheme = await BlocklockScheme.deploy(
-            [blocklock_default_pk.x.c0, blocklock_default_pk.x.c1],
-            [blocklock_default_pk.y.c0, blocklock_default_pk.y.c1]
+            [BLOCKLOCK_PUBLIC_KEY.x.c0, BLOCKLOCK_PUBLIC_KEY.x.c1],
+            [BLOCKLOCK_PUBLIC_KEY.y.c0, BLOCKLOCK_PUBLIC_KEY.y.c1]
         )
         await blocklockScheme.waitForDeployment()
         const scheme = BlocklockSignatureScheme__factory.connect(await blocklockScheme.getAddress(), wallet)
 
-        const dst = 'BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x0000000000000000000000000000000000000000000000000000000000007a69_'
+        const dst = "BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x0000000000000000000000000000000000000000000000000000000000007a69_"
         const dstHex = toHexString(dst)
         expect(await scheme.DST()).toBe(dstHex)
         expect(await scheme.DST()).toBe(uint8ArrayToHexString(BLOCKLOCK_IBE_OPTS.dsts.H1_G1))
@@ -206,7 +205,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
 
         /** Blocklock js Integration */
 
-        // User or client side
+            // User or client side
         const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress(), 31337n)
         const mockBlocklockReceiverInstance = MockBlocklockReceiver__factory.connect(await mockBlocklockReceiver.getAddress(), wallet)
 
@@ -220,10 +219,10 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const encodedMessage = getBytes(msgBytes)
 
         const encodedCondition = encodeCondition(blockHeight)
-        const ct = blocklockjs.encrypt(encodedMessage, blockHeight, blocklock_default_pk)
+        const ct = blocklockjs.encrypt(encodedMessage, blockHeight, BLOCKLOCK_PUBLIC_KEY)
 
         // fund contract
-        await mockBlocklockReceiverInstance.connect(wallet).fundContractNative({ value: ethers.parseEther("3") })
+        await mockBlocklockReceiverInstance.connect(wallet).fundContractNative({value: ethers.parseEther("3")})
         // make direct funding request with enough callbackGasLimit to cover BLS operations in call to decrypt() function
         // in receiver contract
         const callbackGasLimit = 400_000;
@@ -264,7 +263,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         // const decryption_key = preprocess_decryption_key_g1(parsedCiphertext, sigPoint, BLOCKLOCK_IBE_OPTS)
 
         const bls = await BlsBn254.create()
-        const { pubKey, secretKey } = bls.createKeyPair(blsKey as `0x${string}`)
+        const {pubKey, secretKey} = bls.createKeyPair(blsKey as `0x${string}`)
         const conditionBytes = isHexString(condition) ? getBytes(condition) : toUtf8Bytes(condition)
 
         const m = bls.hashToPoint(BLOCKLOCK_IBE_OPTS.dsts.H1_G1, conditionBytes)
@@ -272,7 +271,10 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const signature = bls.sign(m, secretKey).signature
         const sig = bls.serialiseG1Point(signature)
         const sigBytes = AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [sig[0], sig[1]])
-        const decryption_key = preprocess_decryption_key_g1(parsedCiphertext, { x: sig[0], y: sig[1] }, BLOCKLOCK_IBE_OPTS)
+        const decryption_key = preprocess_decryption_key_g1(parsedCiphertext, {
+            x: sig[0],
+            y: sig[1]
+        }, BLOCKLOCK_IBE_OPTS)
 
         // fulfill the conditional encryption request if profitable
         const estimatedGas = await decryptionSenderInstance
@@ -291,7 +293,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const effectiveGasPrice =
             maxFeePerGas < baseFeePerGas + maxPriorityFeePerGas ? maxFeePerGas : baseFeePerGas + maxPriorityFeePerGas;
 
-        // It is best to calculate if it's profitable to execute with buffer
+        // It is best to calculate if it"s profitable to execute with buffer
         // as the transaction could fail without adding the buffer if the actual gas used is 
         // higher than the estimatedGasWithCallbackGasLimit.
         // It is also safer to add a buffer to the estimatedGasWithCallbackGasLimit, not just estimatedGas
@@ -310,7 +312,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
 
         console.log("Profit after tx in eth", ethers.formatEther(profitAfterTx.toString()))
         console.log("Expected tx cost in eth", ethers.formatEther(expectedTxCost.toString()))
-        
+
         // transaction passes if we add buffer to the gas limit
         tx = await decryptionSenderInstance.connect(wallet).fulfillDecryptionRequest(requestID, decryption_key, sigBytes, {
             gasLimit: gasBuffer,
@@ -324,7 +326,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         console.log("Callback gas limit:", callbackGasLimit.toString())
         console.log("Estimated gas + Callback gas limit:", estimatedGasWithCallbackGasLimit.toString())
         console.log("Actual gas used:", txReceipt!.gasUsed.toString())
-        
+
         // The actual gas used is always higher than estimated gas
         // while in hardhat tests, the estimated gas is equal to the actual gas used
         // increasing the callback gas limit increases the estimated gas slightly with a chance that the
@@ -354,12 +356,12 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
     it("can request blocklock decryption from user contract with subscription funding and on-chain decryption", async () => {
         /** Smart Contract Deployments */
 
-        // deploy signature scheme address provider
+            // deploy signature scheme address provider
         const SignatureSchemeAddressProvider = new ethers.ContractFactory(
-            SignatureSchemeAddressProvider__factory.abi,
-            SignatureSchemeAddressProvider__factory.bytecode,
-            wallet,
-        )
+                SignatureSchemeAddressProvider__factory.abi,
+                SignatureSchemeAddressProvider__factory.bytecode,
+                wallet,
+            )
         const signatureSchemeAddressProvider = await SignatureSchemeAddressProvider.deploy(
             await wallet.getAddress()
         )
@@ -373,13 +375,13 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
             wallet,
         )
         const blocklockScheme = await BlocklockScheme.deploy(
-            [blocklock_default_pk.x.c0, blocklock_default_pk.x.c1],
-            [blocklock_default_pk.y.c0, blocklock_default_pk.y.c1]
+            [BLOCKLOCK_PUBLIC_KEY.x.c0, BLOCKLOCK_PUBLIC_KEY.x.c1],
+            [BLOCKLOCK_PUBLIC_KEY.y.c0, BLOCKLOCK_PUBLIC_KEY.y.c1]
         )
         await blocklockScheme.waitForDeployment()
         const scheme = BlocklockSignatureScheme__factory.connect(await blocklockScheme.getAddress(), wallet)
 
-        const dst = 'BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x0000000000000000000000000000000000000000000000000000000000007a69_'
+        const dst = "BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x0000000000000000000000000000000000000000000000000000000000007a69_"
         const dstHex = toHexString(dst)
         expect(await scheme.DST()).toBe(dstHex)
         expect(dstHex).toBe(uint8ArrayToHexString(BLOCKLOCK_IBE_OPTS.dsts.H1_G1))
@@ -465,7 +467,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
 
         /** Blocklock js Integration */
 
-        // User or client side
+            // User or client side
         const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress(), 31337n)
         const mockBlocklockReceiverInstance = MockBlocklockReceiver__factory.connect(await mockBlocklockReceiver.getAddress(), wallet)
 
@@ -479,10 +481,10 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const encodedMessage = getBytes(msgBytes)
 
         const encodedCondition = encodeCondition(blockHeight)
-        const ct = blocklockjs.encrypt(encodedMessage, blockHeight, blocklock_default_pk)
+        const ct = blocklockjs.encrypt(encodedMessage, blockHeight, BLOCKLOCK_PUBLIC_KEY)
 
         // create and fund subscription
-        await mockBlocklockReceiverInstance.connect(wallet).createSubscriptionAndFundNative({ value: ethers.parseEther("3") })
+        await mockBlocklockReceiverInstance.connect(wallet).createSubscriptionAndFundNative({value: ethers.parseEther("3")})
 
         // make direct funding request with enough callbackGasLimit to cover BLS operations in call to decrypt() function
         // in receiver contract
@@ -524,7 +526,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         // const decryption_key = preprocess_decryption_key_g1(parsedCiphertext, sigPoint, BLOCKLOCK_IBE_OPTS)
 
         const bls = await BlsBn254.create()
-        const { pubKey, secretKey } = bls.createKeyPair(blsKey as `0x${string}`)
+        const {pubKey, secretKey} = bls.createKeyPair(blsKey as `0x${string}`)
         const conditionBytes = isHexString(condition) ? getBytes(condition) : toUtf8Bytes(condition)
 
         const m = bls.hashToPoint(BLOCKLOCK_IBE_OPTS.dsts.H1_G1, conditionBytes)
@@ -532,7 +534,10 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const signature = bls.sign(m, secretKey).signature
         const sig = bls.serialiseG1Point(signature)
         const sigBytes = AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [sig[0], sig[1]])
-        const decryption_key = preprocess_decryption_key_g1(parsedCiphertext, { x: sig[0], y: sig[1] }, BLOCKLOCK_IBE_OPTS)
+        const decryption_key = preprocess_decryption_key_g1(parsedCiphertext, {
+            x: sig[0],
+            y: sig[1]
+        }, BLOCKLOCK_IBE_OPTS)
 
         // fulfill the conditional encryption request if profitable
         const estimatedGas = await decryptionSenderInstance
@@ -547,14 +552,14 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas!
 
         const subscriptionId = await mockBlocklockReceiverInstance.subscriptionId()
-        const [nativeBalance,,,] = await blocklockSender.getSubscription(subscriptionId)
+        const [nativeBalance, , ,] = await blocklockSender.getSubscription(subscriptionId)
         const userPayment = nativeBalance // for subscription, we check the subscription balance using the subscription id
 
         const baseFeePerGas = (await provider.getBlock("latest"))?.baseFeePerGas!
         const effectiveGasPrice =
             maxFeePerGas < baseFeePerGas + maxPriorityFeePerGas ? maxFeePerGas : baseFeePerGas + maxPriorityFeePerGas
 
-        // It is best to calculate if it's profitable to execute with buffer
+        // It is best to calculate if it"s profitable to execute with buffer
         // as the transaction could fail without adding the buffer if the actual gas used is 
         // higher than the estimatedGasWithCallbackGasLimit.
         // It is also safer to add a buffer to the estimatedGasWithCallbackGasLimit, not just estimatedGas
@@ -584,18 +589,18 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         const [success, txReceipt] = await checkTxMined(tx.hash, provider)
         expect(success).toBe(true)
 
-        const [nativeBalanceAfterTx,,,] = await blocklockSender.getSubscription(subscriptionId)
+        const [nativeBalanceAfterTx, , ,] = await blocklockSender.getSubscription(subscriptionId)
         console.log("Native balance after tx:", ethers.formatEther(nativeBalanceAfterTx.toString()))
         console.log("Actual amount paid for tx:", ethers.formatEther(nativeBalance - nativeBalanceAfterTx))
 
         // amount deducted from subscription should be higher than actual gas used * gas price
-        expect(nativeBalance - nativeBalanceAfterTx).toBeGreaterThan(txReceipt!.gasUsed * effectiveGasPrice) 
+        expect(nativeBalance - nativeBalanceAfterTx).toBeGreaterThan(txReceipt!.gasUsed * effectiveGasPrice)
 
         console.log("Estimated gas:", estimatedGas.toString())
         console.log("Callback gas limit:", callbackGasLimit.toString())
         console.log("Estimated gas + Callback gas limit:", estimatedGasWithCallbackGasLimit.toString())
         console.log("Actual gas used:", txReceipt!.gasUsed.toString())
-        
+
         // The actual gas used is always higher than estimated gas
         // while in hardhat tests, the estimated gas is equal to the actual gas used
         // increasing the callback gas limit increases the estimated gas slightly with a chance that the
@@ -629,67 +634,66 @@ async function checkTxMined(txHash: string, provider: ethers.Provider): Promise<
     const receipt = await provider.getTransactionReceipt(txHash)
 
     if (!receipt) {
-        console.log('Transaction not mined yet.')
+        console.log("Transaction not mined yet.")
         return [false, null]
     }
 
     if (receipt.status === 1) {
-        console.log('Transaction mined and succeeded.')
+        console.log("Transaction mined and succeeded.")
         return [true, receipt]
     } else {
-        console.log('Transaction mined but failed.')
+        console.log("Transaction mined but failed.")
         return [false, receipt]
     }
 }
 
 function uint8ArrayToHexString(uint8: Uint8Array): string {
-    return '0x' + Array.from(uint8)
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join('')
+    return "0x" + Array.from(uint8)
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("")
 }
 
 function toHexString(str: string): string {
-    return '0x' + Buffer.from(str, 'utf8').toString('hex')
+    return "0x" + Buffer.from(str, "utf8").toString("hex")
 }
 
 
-
-// Anvil 
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
+// Anvil
+import {spawn, ChildProcessWithoutNullStreams} from "child_process";
 
 let anvilProcess: ChildProcessWithoutNullStreams
 
 export async function startAnvil(): Promise<void> {
     return new Promise((resolve, reject) => {
-        anvilProcess = spawn('anvil', [], { stdio: 'pipe' })
+        anvilProcess = spawn("anvil", [], {stdio: "pipe"})
 
-        anvilProcess.stdout.on('data', (data) => {
+        anvilProcess.stdout.on("data", (data) => {
             const output = data.toString()
-            console.log('[anvil]', output)
-            if (output.includes('Listening on')) {
+            console.log("[anvil]", output)
+            if (output.includes("Listening on")) {
                 resolve()
             }
         })
 
-        anvilProcess.stderr.on('data', (data) => {
-            console.error('[anvil error]', data.toString())
+        anvilProcess.stderr.on("data", (data) => {
+            console.error("[anvil error]", data.toString())
         })
 
-        anvilProcess.on('error', (err) => {
+        anvilProcess.on("error", (err) => {
             reject(err)
         })
     })
 }
 
 export async function stopAnvil(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         if (!anvilProcess) return resolve()
 
-        anvilProcess.once('close', (code) => {
+        anvilProcess.once("close", (code) => {
             console.log(`[anvil] exited with code ${code}`)
             resolve()
         })
 
-        anvilProcess.kill('SIGINT')
+        anvilProcess.kill("SIGINT")
     })
 }
