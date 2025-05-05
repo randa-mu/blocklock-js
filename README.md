@@ -48,7 +48,7 @@ The example user smart contract source code can be found [here](https://github.c
 
 ```js
 import { ethers, getBytes } from "ethers";
-import { Blocklock, SolidityEncoder, encodeCiphertextToSolidity } from "blocklock-js";
+import { Blocklock, SolidityEncoder, encodeCiphertextToSolidity, encodeCondition } from "blocklock-js";
 import { MockBlocklockReceiver__factory } from "../types"; // Users' solidity contract TypeScript binding
 
 async function main() {
@@ -75,10 +75,18 @@ async function main() {
   const blocklockjs = new Blocklock(wallet, "blocklockSender contract address");
   const ciphertext = blocklockjs.encrypt(encodedMessage, blockHeight);
 
-  // Call `createTimelockRequest` on the user's contract
+  // Generate the timelock encryption condition bytes string
+  const conditionBytes = encodeCondition(blockHeight);
+  const callbackGasLimit = 400_00;
+
+  // Call `createTimelockRequestWithDirectFunding` on the user's contract 
+  // for a direct or ad hoc funding request with the following parameters:
+  // uint32 callbackGasLimit, 
+  // bytes calldata condition and,
+  // TypesLib.Ciphertext calldata encryptedData
   const tx = await mockBlocklockReceiver
     .connect(wallet)
-    .createTimelockRequest(blockHeight, encodeCiphertextToSolidity(ciphertext));
+    .createTimelockRequestWithDirectFunding(callbackGasLimit, conditionBytes, encodeCiphertextToSolidity(ciphertext));
   const receipt = await tx.wait(1);
 
   if (!receipt) {
@@ -101,7 +109,7 @@ main().catch((error) => {
 
 2. On-Chain Interaction:
 
-    * Call the appropriate function in the user contract with the encrypted data and the chain height used during off-chain encryption. In this example, the function `createTimelockRequest` is called, which creates an on-chain timelock request with the encrypted data and chain height as a condition for decryption, stores the encrypted data, and generates a request ID.
+    * Call the appropriate function in the user contract with the encrypted data and the chain height used during off-chain encryption. In this example, the `blocklockSender.requestBlocklock` function is called, which creates an on-chain timelock request with the encrypted data and chain height as a condition for decryption, stores the encrypted data, and generates a unique request ID.
 
 3. Decryption:
 
