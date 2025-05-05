@@ -106,14 +106,15 @@ main().catch((error) => {
 
     * Use the SolidityEncoder to encode Solidity-compatible data types.
     * Encrypt the encoded message and specify the decryption chain height.
+    * Generate the condition bytes string
 
 2. On-Chain Interaction:
 
-    * Call the appropriate function in the user contract with the encrypted data and the chain height used during off-chain encryption. In this example, the `blocklockSender.requestBlocklock` function is called, which creates an on-chain timelock request with the encrypted data and chain height as a condition for decryption, stores the encrypted data, and generates a unique request ID.
+    * Call the appropriate function in the user contract with the encrypted data and the chain height used during off-chain encryption. In this example, the `createTimelockRequestWithDirectFunding` function is called, which calls the [BlocklockSender](https://github.com/randa-mu/blocklock-solidity/blob/main/src/blocklock/BlocklockSender.sol) contract to create an on-chain timelock request with the encrypted data and condition (represented as bytes to support different condition types) for decryption, using the direct funding method. The `BlocklockSender` contract then stores the encrypted data, and generates a unique request ID. The `BlocklockSender` contract also supports a subscription funding method. To make a request via that is paid for via a funded subscription account, the `createTimelockRequestWithSubscription` function in the [example](https://github.com/randa-mu/blocklock-solidity/blob/main/src/mocks/MockBlocklockReceiver.sol) smart contract code can be called.
 
 3. Decryption:
 
-    * After the specified chain height, the on-chain timelock contract triggers a callback to the user's contract, providing the decryption key. The user's contract then calls the `decrypt` function in the `BlocklockSender` contract to perform on-chain decryption using the provided decryption key.
+    * After the specified chain height, the on-chain timelock contract triggers a callback to the user's contract, providing the decryption key. The user's contract can then call the `decrypt` function in the `BlocklockSender` contract to perform on-chain decryption using the provided decryption key.
 
 
 #### Supported Data Types
