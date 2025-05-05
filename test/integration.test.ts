@@ -22,7 +22,7 @@ describe("Blocklock integration tests with supported networks", () => {
 
     // filecoin calibnet is very slow
     // the test can take up to 260s
-    it.only("should encrypt and decrypt for filecoin calibnet", async () => {
+    it.skip("should encrypt and decrypt for filecoin calibnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFilecoinCalibnet(wallet)
