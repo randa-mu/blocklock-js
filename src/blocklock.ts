@@ -51,7 +51,7 @@ type GasParams = {
 }
 
 const defaultGasParams: GasParams = {
-    gasLimit: 400_000,
+    gasLimit: 100_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
 }
@@ -143,79 +143,86 @@ export class Blocklock {
     async requestBlocklock(blockHeight: bigint, ciphertext: TypesLib.CiphertextStruct): Promise<bigint> {
         const conditionBytes = encodeCondition(blockHeight);
 
-        // Get request price (native token)
-    
-        // 1. Get EIP-1559 fee data
-        const feeData = await this.signer.provider?.getFeeData();
-        const maxFeePerGas = feeData?.maxFeePerGas!;
-        const maxPriorityFeePerGas = feeData?.maxPriorityFeePerGas!;
+        // 1. Get chain ID and fee data
+        const network = await this.signer.provider!.getNetwork();
+        const chainId = network.chainId;
 
-        // 2. Calculate the timelock encryption request price using the callback gas limit
-        // Gas Price Used Off-Chain could become Outdated
-        // `calculateRequestPriceNative(callbackGasLimit)` depends on the current gas price (tx.gasprice or block.basefee) at the time of execution.
-        // When called off-chain, this is based on latest known block data.
-        // But when the EOA sends the actual transaction a few seconds later, gas prices may have changed.
-        // Result: The required payment goes up, but the EOA still sends the lower estimate.
-        // It's strongly recommended to add a buffer (e.g., 1.5× or 2×) to avoid underpaying,
-        // which may result in failed or underfunded requests. For direct funding requests, 
-        // the contract does not auto-adjust for small underpayments, 
-        // so this must be handled client-side.
-
-        const latestBlock = await this.signer.provider?.getBlock("latest");
-        const baseFeePerGas = latestBlock?.baseFeePerGas!;
-
-        // The effective gas price is (min of maxFeePerGas and base + priority)
-        // maxFeePerGas is the maximum total fee per unit of gas that a user is willing to pay.
-        // Ensures users do not overpay during spikes in baseFeePerGas.
-        // Must satisfy: maxFeePerGas >= baseFeePerGas + maxPriorityFeePerGas
-        // where, maxPriorityFeePerGas is a tip for validators, and 
-        // baseFeePerGas is set by the network and represents the minimum gas price required to include a transaction in a block.
-        // It is burned, not paid to miners/validators. 
-        // Adjusts up or down depending on block congestion (target = 50% full).
-        const effectiveGasPrice = maxFeePerGas < baseFeePerGas + maxPriorityFeePerGas ? maxFeePerGas : baseFeePerGas + maxPriorityFeePerGas;
+        const feeData = await this.signer.provider!.getFeeData();
         
-        // Polygon POS gas price fluctuates a lot so we need to estimate with latest block price before sending 
-        // request in next block.
+        // feeData.gasPrice: Legacy flat gas price (used on non-EIP-1559 chains like Filecoin or older EVMs)
+        const gasPrice = feeData.gasPrice!;
+
+        // feeData.maxFeePerGas: Max total gas price we're willing to pay (base + priority), used in EIP-1559
+        const maxFeePerGas = feeData.maxFeePerGas!;
+
+        // feeData.maxPriorityFeePerGas: Tip to incentivize validators (goes directly to them)
+        const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas!;
+
+        // latestblock.baseFeePerGas: Minimum gas price required by the network (burned), set by latest block
+        // const latestBlock = await this.signer.provider!.getBlock("latest");
+        // const baseFeePerGas = latestBlock!.baseFeePerGas; // BigNumber (v5) or bigint (v6)
+
+        // 2. Determine whether to use legacy or EIP-1559 pricing
+        const isFilecoin = Number(chainId) === 314 || Number(chainId) === 314159;
+
+        let txGasPrice: bigint;
+        if (isFilecoin) {
+            // Use legacy gasPrice directly
+            txGasPrice = gasPrice > 0? gasPrice * 10n : (maxFeePerGas + maxPriorityFeePerGas) * 10n;
+        } else {
+            // Use effective gas price based on EIP-1559
+            txGasPrice = maxFeePerGas + maxPriorityFeePerGas;
+        }
+
+        // 3. Estimate request price using the selected txGasPrice
         const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
             this.gasParams.gasLimit,
-            effectiveGasPrice
+            txGasPrice 
         );
 
-        // Always use a buffer over the estimated gas — e.g., 1.2× to 2× —
-        // to account for potential state changes between blocks that can 
-        // increase actual gas usage.
-        const gasBuffer = 200n;
-        const valueToSend = requestPrice  * gasBuffer / 100n;
+        // 4. Apply buffer (e.g. 100% = 2× total)
+        const bufferPercent = isFilecoin? 300n: 100n;
+        const valueToSend = requestPrice + (requestPrice * bufferPercent) / 100n;
 
-        // 3. Estimate the gas cost of the transaction
+        // 5. Estimate gas
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
             this.gasParams.gasLimit,
             conditionBytes,
             ciphertext,
-            {
-                value: valueToSend,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
-            }
+            isFilecoin
+                ? { value: valueToSend, gasPrice: txGasPrice }
+                : {
+                    value: valueToSend,
+                    maxFeePerGas,
+                    maxPriorityFeePerGas,
+                }
         );
 
-        // 4. Send the transaction
+        // 6. Send transaction
         const tx = await this.blocklockSender.requestBlocklock(
             this.gasParams.gasLimit,
             conditionBytes,
             ciphertext,
-            {
-                value: valueToSend,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
-                gasLimit: estimatedGas
-            }
+            isFilecoin
+                ? {
+                    value: valueToSend,
+                    gasLimit: estimatedGas,
+                    gasPrice: txGasPrice,
+                }
+                : {
+                    value: valueToSend,
+                    gasLimit: estimatedGas,
+                    maxFeePerGas,
+                    maxPriorityFeePerGas,
+                }
         );
+
         const receipt = await tx.wait();
         if (!receipt) {
             throw new Error("Transaction was not mined");
         }
 
+        // 7. Extract request ID from log
         const [requestID] = extractSingleLog(
             iface,
             receipt,
