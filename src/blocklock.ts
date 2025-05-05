@@ -160,14 +160,32 @@ export class Blocklock {
         // which may result in failed or underfunded requests. For direct funding requests, 
         // the contract does not auto-adjust for small underpayments, 
         // so this must be handled client-side.
-        const requestPrice = await this.blocklockSender.calculateRequestPriceNative(
-            this.gasParams.gasLimit
+
+        const latestBlock = await this.signer.provider?.getBlock("latest");
+        const baseFeePerGas = latestBlock?.baseFeePerGas!;
+
+        // The effective gas price is (min of maxFeePerGas and base + priority)
+        // maxFeePerGas is the maximum total fee per unit of gas that a user is willing to pay.
+        // Ensures users do not overpay during spikes in baseFeePerGas.
+        // Must satisfy: maxFeePerGas >= baseFeePerGas + maxPriorityFeePerGas
+        // where, maxPriorityFeePerGas is a tip for validators, and 
+        // baseFeePerGas is set by the network and represents the minimum gas price required to include a transaction in a block.
+        // It is burned, not paid to miners/validators. 
+        // Adjusts up or down depending on block congestion (target = 50% full).
+        const effectiveGasPrice = maxFeePerGas < baseFeePerGas + maxPriorityFeePerGas ? maxFeePerGas : baseFeePerGas + maxPriorityFeePerGas;
+        
+        // Polygon POS gas price fluctuates a lot so we need to estimate with latest block price before sending 
+        // request in next block.
+        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
+            this.gasParams.gasLimit,
+            effectiveGasPrice
         );
 
         // Always use a buffer over the estimated gas — e.g., 1.2× to 2× —
         // to account for potential state changes between blocks that can 
         // increase actual gas usage.
-        const valueToSend = requestPrice  * 110n / 100n;
+        const gasBuffer = 200n;
+        const valueToSend = requestPrice  * gasBuffer / 100n;
 
         // 3. Estimate the gas cost of the transaction
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
@@ -176,7 +194,7 @@ export class Blocklock {
             ciphertext,
             {
                 value: valueToSend,
-                maxFeePerGas,
+                maxFeePerGas: effectiveGasPrice,
                 maxPriorityFeePerGas,
             }
         );
@@ -188,7 +206,7 @@ export class Blocklock {
             ciphertext,
             {
                 value: valueToSend,
-                maxFeePerGas,
+                maxFeePerGas: maxFeePerGas * gasBuffer / 100n,
                 maxPriorityFeePerGas,
                 gasLimit: estimatedGas
             }

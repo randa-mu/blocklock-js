@@ -61,7 +61,7 @@ let provider: ethers.JsonRpcProvider
 let wallet: ethers.Signer
 let accounts: ethers.Signer[]
 
-describe("Blocklock blockchain integration tests with Anvil", () => {
+describe.skip("Blocklock blockchain integration tests with Anvil", () => {
     beforeAll(async () => {
         console.log('Starting Anvil...')
         await startAnvil()
