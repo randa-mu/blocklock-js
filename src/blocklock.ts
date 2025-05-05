@@ -184,7 +184,7 @@ export class Blocklock {
         // Always use a buffer over the estimated gas — e.g., 1.2× to 2× —
         // to account for potential state changes between blocks that can 
         // increase actual gas usage.
-        const gasBuffer = 400n;
+        const gasBuffer = 200n;
         const valueToSend = requestPrice  * gasBuffer / 100n;
 
         // 3. Estimate the gas cost of the transaction
