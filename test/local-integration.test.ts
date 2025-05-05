@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals"
-import { bn254 } from "@kevincharm/noble-bn254-drand"
-import { BlsBn254, serialiseG2Point } from "../src/crypto/bls-bn254";
 import { keccak_256 } from "@noble/hashes/sha3"
 import dotenv from "dotenv"
 import { ZeroAddress, ethers, getBytes, isHexString, toUtf8Bytes, AbiCoder } from "ethers"
+import { BlsBn254 } from "../src/crypto/bls-bn254"
 
 import {
     MockBlocklockReceiver__factory,
