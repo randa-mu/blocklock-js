@@ -150,30 +150,18 @@ export class Blocklock {
         const maxFeePerGas = feeData?.maxFeePerGas!;
         const maxPriorityFeePerGas = feeData?.maxPriorityFeePerGas!;
 
-        const latestBlock = await this.signer.provider?.getBlock("latest");
-        const baseFeePerGas = latestBlock?.baseFeePerGas!;
-
-        // 2. Compute effective gas price (min of maxFeePerGas and base + priority)
-        // maxFeePerGas is the maximum total fee per unit of gas that a user is willing to pay.
-        // Also set by the user.
-        // Ensures users do not overpay during spikes in baseFeePerGas.
-        // Must satisfy: maxFeePerGas >= baseFeePerGas + maxPriorityFeePerGas
-        // where, maxPriorityFeePerGas is a tip for validators, and 
-        // baseFeePerGas is set by the network and represents the minimum gas price required to include a transaction in a block.
-        // It is burned, not paid to miners/validators. 
-        // Adjusts up or down depending on block congestion (target = 50% full).
-        const effectiveGasPrice =
-            maxFeePerGas < baseFeePerGas + maxPriorityFeePerGas ? maxFeePerGas : baseFeePerGas + maxPriorityFeePerGas;
-
-
-        // 3. Calculate the request price using the callback gas limit and the current network gas price
-        // at the time of the request, to avoid price changes at request time 
-        // if network gas price fluctuates quickly
-        // also add a buffer to address network gas price changes before request tx is mined
-        // Request price estimation uses gas price or fallback gas price setting in blocklockSender fee configuration.
-        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
-            this.gasParams.gasLimit,
-            effectiveGasPrice
+        // 2. Calculate the request price using the callback gas limit
+        // Gas Price Used Off-Chain could become Outdated
+        // `calculateRequestPriceNative(callbackGasLimit)` depends on the current gas price (tx.gasprice or block.basefee) at the time of execution.
+        // When called off-chain, this is based on latest known block data.
+        // But when the EOA sends the actual transaction a few seconds later, gas prices may have changed.
+        // Result: The required payment goes up, but the EOA still sends the lower estimate.
+        // It's strongly recommended to add a buffer (e.g., 1.5× or 2×) to avoid underpaying,
+        // which may result in failed or underfunded requests. For direct funding requests, 
+        // the contract does not auto-adjust for small underpayments, 
+        // so this must be handled client-side.
+        const requestPrice = await this.blocklockSender.calculateRequestPriceNative(
+            this.gasParams.gasLimit
         );
 
         // Always use a buffer over the estimated gas — e.g., 1.2× to 2× —
@@ -181,7 +169,7 @@ export class Blocklock {
         // increase actual gas usage.
         const valueToSend = requestPrice  * 110n / 100n;
 
-        // 4. Estimate the gas cost of the request
+        // 3. Estimate the gas cost of the request
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
             this.gasParams.gasLimit,
             conditionBytes,
@@ -193,7 +181,7 @@ export class Blocklock {
             }
         );
 
-        // 5. Send the request
+        // 4. Send the request
         const tx = await this.blocklockSender.requestBlocklock(
             this.gasParams.gasLimit,
             conditionBytes,
