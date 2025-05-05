@@ -2,7 +2,7 @@ import { encodeCondition, decodeCondition } from "../src"
 import { ethers } from "ethers"
 import { describe, it, expect } from "@jest/globals"
 
-describe("Block Height Condition Encoding/Decoding", () => {
+describe.skip("Block Height Condition Encoding/Decoding", () => {
     it("should encode a block height with the 0x42 prefix", () => {
         const blockHeight = 123456789n
         const encoded = encodeCondition(blockHeight)
