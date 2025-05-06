@@ -61,7 +61,6 @@ async function runEncryptionTest(rpc: Provider, blocklock: Blocklock) {
 
     let result = new Uint8Array(0)
     while (result.length === 0) {
-        console.log("decryption key not set yet")
         await sleep(1000)
         result = await blocklock.decryptWithId(id)
     }
