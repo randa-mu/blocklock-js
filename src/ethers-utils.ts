@@ -1,5 +1,17 @@
 // extracts an event log of a given type from a transaction receipt that matches the address provided
-import {EthersError, EventFragment, Interface, Result, TransactionReceipt} from "ethers"
+import {
+    AbiCoder,
+    BytesLike,
+    EthersError,
+    EventFragment,
+    getBytes,
+    Interface,
+    ParamType,
+    Result,
+    TransactionReceipt
+} from "ethers"
+import {Ciphertext} from "./crypto/ibe-bn254"
+import {TypesLib} from "./generated/BlocklockSender"
 
 export function extractLogs<T extends Interface, E extends EventFragment>(iface: T, receipt: TransactionReceipt, contractAddress: string, event: E): Array<Result> {
     return receipt.logs
@@ -42,4 +54,61 @@ export function extractErrorMessage(err: EthersError, iface: Interface): string 
 
 export function isEthersError(error: unknown): error is EthersError {
     return (error as EthersError)?.code !== undefined;
+}
+
+// any because that's how naughty ethers wants it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const encodeParams = (dataTypes: readonly ParamType[] | readonly string[], data: readonly any[]): string => {
+    const abiCoder = AbiCoder.defaultAbiCoder()
+    return abiCoder.encode(dataTypes, data)
+}
+
+export const decodeParams= (dataTypes: readonly ParamType[] | readonly string[], data: BytesLike): Result => {
+    const abiCoder = AbiCoder.defaultAbiCoder()
+    return abiCoder.decode(dataTypes, data)
+}
+
+export function parseSolidityCiphertextString(ciphertext: string): Ciphertext {
+    const ctBytes = getBytes(ciphertext);
+    const ct: TypesLib.CiphertextStructOutput = decodeParams(
+        ["tuple(tuple(uint256[2] x, uint256[2] y) u, bytes v, bytes w)"],
+        ctBytes,
+    )[0];
+
+    const uX0 = ct.u.x[0];
+    const uX1 = ct.u.x[1];
+    const uY0 = ct.u.y[0];
+    const uY1 = ct.u.y[1];
+    return {
+        U: {x: {c0: uX0, c1: uX1}, y: {c0: uY0, c1: uY1}},
+        V: getBytes(ct.v),
+        W: getBytes(ct.w),
+    };
+}
+
+
+export function parseSolidityCiphertext(ciphertext: TypesLib.CiphertextStructOutput): Ciphertext {
+    const uX0 = ciphertext.u.x[0]
+    const uX1 = ciphertext.u.x[1]
+    const uY0 = ciphertext.u.y[0]
+    const uY1 = ciphertext.u.y[1]
+    return {
+        U: {x: {c0: uX0, c1: uX1}, y: {c0: uY0, c1: uY1}},
+        V: getBytes(ciphertext.v),
+        W: getBytes(ciphertext.w),
+    }
+}
+
+
+export function encodeCiphertextToSolidity(ciphertext: Ciphertext): TypesLib.CiphertextStruct {
+    const u: { x: [bigint, bigint], y: [bigint, bigint] } = {
+        x: [ciphertext.U.x.c0, ciphertext.U.x.c1],
+        y: [ciphertext.U.y.c0, ciphertext.U.y.c1]
+    }
+
+    return {
+        u,
+        v: ciphertext.V,
+        w: ciphertext.W,
+    }
 }

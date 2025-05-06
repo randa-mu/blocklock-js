@@ -17,9 +17,9 @@ Solidity interfaces and associated documentation for them can be found in the [b
 
 #### Smart Contract Addresses
 
-| Contract        | Address | Network          |
-|-----------------|---------|------------------|
-| BlocklockSender Proxy | 0xfF66908E1d7d23ff62791505b2eC120128918F44   | Filecoin Calibnet |
+| Contract        |  Description | Address | 
+|-----------------|---------|---------|
+| **BlocklockSender Proxy** | A lightweight proxy contract that enables upgradeability for the `BlocklockSender` implementation. It delegates all calls to the underlying implementation and serves as the primary interface for user interaction. | <br>- Filecoin Calibration Testnet: [0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702](https://calibration.filfox.info/en/address/0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702)<br> - Base Sepolia: [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://sepolia.basescan.org/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e) <br> - Polygon PoS: [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://polygonscan.com/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e) <br> | 
 
 
 ### Installation
@@ -48,7 +48,7 @@ The example user smart contract source code can be found [here](https://github.c
 
 ```js
 import { ethers, getBytes } from "ethers";
-import { Blocklock, SolidityEncoder, encodeCiphertextToSolidity } from "blocklock-js";
+import { Blocklock, SolidityEncoder, encodeCiphertextToSolidity, encodeCondition } from "blocklock-js";
 import { MockBlocklockReceiver__factory } from "../types"; // Users' solidity contract TypeScript binding
 
 async function main() {
@@ -75,10 +75,18 @@ async function main() {
   const blocklockjs = new Blocklock(wallet, "blocklockSender contract address");
   const ciphertext = blocklockjs.encrypt(encodedMessage, blockHeight);
 
-  // Call `createTimelockRequest` on the user's contract
+  // Generate the timelock encryption condition bytes string
+  const conditionBytes = encodeCondition(blockHeight);
+  const callbackGasLimit = 400_00;
+
+  // Call `createTimelockRequestWithDirectFunding` on the user's contract 
+  // for a direct or ad hoc funding request with the following parameters:
+  // uint32 callbackGasLimit, 
+  // bytes calldata condition and,
+  // TypesLib.Ciphertext calldata encryptedData
   const tx = await mockBlocklockReceiver
     .connect(wallet)
-    .createTimelockRequest(blockHeight, encodeCiphertextToSolidity(ciphertext));
+    .createTimelockRequestWithDirectFunding(callbackGasLimit, conditionBytes, encodeCiphertextToSolidity(ciphertext));
   const receipt = await tx.wait(1);
 
   if (!receipt) {
@@ -98,14 +106,15 @@ main().catch((error) => {
 
     * Use the SolidityEncoder to encode Solidity-compatible data types.
     * Encrypt the encoded message and specify the decryption chain height.
+    * Generate the condition bytes string
 
 2. On-Chain Interaction:
 
-    * Call the appropriate function in the user contract with the encrypted data and the chain height used during off-chain encryption. In this example, the function `createTimelockRequest` is called, which creates an on-chain timelock request with the encrypted data and chain height as a condition for decryption, stores the encrypted data, and generates a request ID.
+    * Call the appropriate function in the user contract with the encrypted data and the chain height used during off-chain encryption. In this example, the `createTimelockRequestWithDirectFunding` function is called, which calls the [BlocklockSender](https://github.com/randa-mu/blocklock-solidity/blob/main/src/blocklock/BlocklockSender.sol) contract to create an on-chain timelock request with the encrypted data and condition (represented as bytes to support different condition types) for decryption, using the direct funding method. The `BlocklockSender` contract then stores the encrypted data, and generates a unique request ID. The `BlocklockSender` contract also supports a subscription funding method. To make a request via that is paid for via a funded subscription account, the `createTimelockRequestWithSubscription` function in the [example](https://github.com/randa-mu/blocklock-solidity/blob/main/src/mocks/MockBlocklockReceiver.sol) smart contract code can be called.
 
 3. Decryption:
 
-    * After the specified chain height, the on-chain timelock contract triggers a callback to the user's contract, providing the decryption key. The user's contract then calls the `decrypt` function in the `BlocklockSender` contract to perform on-chain decryption using the provided decryption key.
+    * After the specified chain height, the on-chain timelock contract triggers a callback to the user's contract, providing the decryption key. The user's contract can then call the `decrypt` function in the `BlocklockSender` contract to perform on-chain decryption using the provided decryption key.
 
 
 #### Supported Data Types
