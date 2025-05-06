@@ -65,6 +65,7 @@ const filecoinGasParams: GasParams = {
 /* addresses of the deployed blocklockSender contracts */
 export const FURNACE_TESTNET_CONTRACT_ADDRESS = "0xEd925F96790F11678972b0F2c250498D782DDec9"
 export const FILECOIN_CALIBNET_CONTRACT_ADDRESS = "0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702"
+export const FILECOIN_MAINNET_CONTRACT_ADDRESS = "0x34092470CC59A097d770523931E3bC179370B44b"
 export const BASE_SEPOLIA_CONTRACT_ADDRESS = "0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e"
 export const POLYGON_POS_CONTRACT_ADDRESS = "0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e"
 
@@ -91,6 +92,9 @@ export class Blocklock {
         this.signer = signer
     }
 
+    static createFilecoinMainnet(rpc: Signer | Provider): Blocklock {
+        return new Blocklock(rpc, FILECOIN_MAINNET_CONTRACT_ADDRESS, 314n, filecoinGasParams)
+    }
     static createFilecoinCalibnet(rpc: Signer | Provider): Blocklock {
         return new Blocklock(rpc, FILECOIN_CALIBNET_CONTRACT_ADDRESS, 314159n, filecoinGasParams)
     }
@@ -113,6 +117,11 @@ export class Blocklock {
             case "314159n":
             case "0x4cb2f":
                 return Blocklock.createFilecoinCalibnet(rpc)
+
+            case "314":
+            case "314n":
+            case "0x13a":
+                return Blocklock.createFilecoinMainnet(rpc)
 
             case "64630":
             case "64630n":
