@@ -1,6 +1,6 @@
 ## blocklock-js
 
-BlocklockJS is a TypeScript library designed to simplify the process of generating encrypted data off-chain for the dcrypt network. It enables developers to securely encrypt data tied to a user-specified future chain height. The encrypted data can then be used to create on-chain timelock encryption requests in smart contracts. Once the specified chain height is mined, the user’s smart contract will receive the decryption keys automatically.
+blocklock-js is a TypeScript library designed to simplify the process of generating encrypted data off-chain for the dcrypt network. It enables developers to securely encrypt data tied to a user-specified future chain height. The encrypted data can then be used to create on-chain timelock encryption requests in smart contracts. Once the specified chain height is mined, the user’s smart contract will receive the decryption keys automatically.
 
 
 ### Key Capabilities
@@ -17,7 +17,7 @@ Solidity interfaces and associated documentation for them can be found in the [b
 
 #### Smart Contract Addresses
 
-### BlocklockSender Proxy
+**BlocklockSender Proxy**
 
 A lightweight proxy contract that enables upgradeability for the `BlocklockSender` implementation. It delegates all calls to the underlying implementation and serves as the primary interface for user interaction.
 
@@ -28,7 +28,7 @@ A lightweight proxy contract that enables upgradeability for the `BlocklockSende
 | Base Sepolia               | [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://sepolia.basescan.org/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e) |
 | Polygon PoS                | [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://polygonscan.com/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e)    |
 
-### Others
+**Others**
 You should only need the `BlocklockSender` proxy above, but a full list of contract addresses can be found in the [solidity repo's README](https://github.com/randa-mu/blocklock-solidity).
 
 
