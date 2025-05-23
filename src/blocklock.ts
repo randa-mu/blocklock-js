@@ -271,11 +271,12 @@ export class Blocklock {
 
     /**
      * Fetch all blocklock requests, decryption keys / signatures excluded.
+     * @param maxLookback how many blocks in the past to look, in case an RPC limits you
      * @returns a map with the details of each blocklock request
      */
-    async fetchAllBlocklockRequests(): Promise<Map<bigint, BlocklockRequest>> {
+    async fetchAllBlocklockRequests(maxLookback: number = 10_000): Promise<Map<bigint, BlocklockRequest>> {
         const requestFilter = this.blocklockSender.filters.BlocklockRequested()
-        const requests = await this.blocklockSender.queryFilter(requestFilter)
+        const requests = await this.blocklockSender.queryFilter(requestFilter, -maxLookback)
 
         return new Map(Array.from(
             requests.map((event) => {
