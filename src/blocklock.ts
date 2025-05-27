@@ -309,6 +309,43 @@ export class Blocklock {
         }
     }
 
+    async getRequestPriceEstimateWithCurrentChainGasPrice(callbackGasLimit: bigint, gasPriceMultiplier: bigint): Promise<bigint> {
+        // 1. Get chain ID and fee data
+        const network = await this.signer.provider!.getNetwork();
+        const chainId = network.chainId;
+
+        const feeData = await this.signer.provider!.getFeeData();
+        
+        // feeData.gasPrice: Legacy flat gas price (used on non-EIP-1559 chains like Filecoin or older EVMs)
+        const gasPrice = feeData.gasPrice!;
+
+        // feeData.maxFeePerGas: Max total gas price we're willing to pay (base + priority), used in EIP-1559
+        const maxFeePerGas = feeData.maxFeePerGas!;
+
+        // feeData.maxPriorityFeePerGas: Tip to incentivize validators (goes directly to them)
+        const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas!;
+
+        // 2. Determine whether to use legacy or EIP-1559 pricing
+        const isFilecoin = Number(chainId) === 314 || Number(chainId) === 314159;
+
+        let txGasPrice: bigint;
+        if (isFilecoin) {
+            // Use legacy gasPrice directly
+            txGasPrice = gasPrice > 0? gasPrice * gasPriceMultiplier : (maxFeePerGas + maxPriorityFeePerGas) * gasPriceMultiplier;
+        } else {
+            // Use effective gas price based on EIP-1559
+            txGasPrice = maxFeePerGas + maxPriorityFeePerGas;
+        }
+
+        // 3. Estimate request price using the selected txGasPrice
+        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
+            callbackGasLimit,
+            txGasPrice 
+        );
+
+        return requestPrice;
+    }
+
     /**
      * Encrypt a message that can be decrypted once a certain blockHeight is reached.
      * @param message plaintext to encrypt
