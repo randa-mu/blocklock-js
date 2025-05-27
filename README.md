@@ -1,6 +1,6 @@
 ## blocklock-js
 
-BlocklockJS is a TypeScript library designed to simplify the process of generating encrypted data off-chain for the dcrypt network. It enables developers to securely encrypt data tied to a user-specified future chain height. The encrypted data can then be used to create on-chain timelock encryption requests in smart contracts. Once the specified chain height is mined, the user’s smart contract will receive the decryption keys automatically.
+blocklock-js is a TypeScript library designed to simplify the process of generating encrypted data off-chain for the dcrypt network. It enables developers to securely encrypt data tied to a user-specified future chain height. The encrypted data can then be used to create on-chain timelock encryption requests in smart contracts. Once the specified chain height is mined, the user’s smart contract will receive the decryption keys automatically.
 
 
 ### Key Capabilities
@@ -17,9 +17,19 @@ Solidity interfaces and associated documentation for them can be found in the [b
 
 #### Smart Contract Addresses
 
-| Contract        |  Description | Address | 
-|-----------------|---------|---------|
-| **BlocklockSender Proxy** | A lightweight proxy contract that enables upgradeability for the `BlocklockSender` implementation. It delegates all calls to the underlying implementation and serves as the primary interface for user interaction. | <br>- Filecoin Calibration Testnet: [0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702](https://calibration.filfox.info/en/address/0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702)<br> - Base Sepolia: [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://sepolia.basescan.org/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e) <br> - Polygon PoS: [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://polygonscan.com/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e) <br> | 
+**BlocklockSender Proxy**
+
+A lightweight proxy contract that enables upgradeability for the `BlocklockSender` implementation. It delegates all calls to the underlying implementation and serves as the primary interface for user interaction.
+
+| Network                    | Address                                                                                                                     |
+|----------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| Filecoin Mainnet           | [0x34092470CC59A097d770523931E3bC179370B44b](https://filfox.info/en/address/0x34092470CC59A097d770523931E3bC179370B44b)     |
+| Filecoin Calibration Testnet | [0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702](https://calibration.filfox.info/en/address/0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702) |
+| Base Sepolia               | [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://sepolia.basescan.org/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e) |
+| Polygon PoS                | [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://polygonscan.com/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e)    |
+
+**Others**
+You should only need the `BlocklockSender` proxy above, but a full list of contract addresses can be found in the [solidity repo's README](https://github.com/randa-mu/blocklock-solidity).
 
 
 ### Installation

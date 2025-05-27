@@ -33,7 +33,7 @@ const createBlocklockIbeOpts = (chainId: bigint): IbeOpts => ({
     },
 })
 
-export const BLOCKLOCK_DEFAULT_PUBLIC_KEY: BlockLockPublicKey = {
+export const BLOCKLOCK_TESTNET_PUBLIC_KEY: BlockLockPublicKey = {
     x: {
         c0: BigInt("0x2691d39ecc380bfa873911a0b848c77556ee948fb8ab649137d3d3e78153f6ca"),
         c1: BigInt("0x2863e20a5125b098108a5061b31f405e16a069e9ebff60022f57f4c4fd0237bf"),
@@ -41,6 +41,17 @@ export const BLOCKLOCK_DEFAULT_PUBLIC_KEY: BlockLockPublicKey = {
     y: {
         c0: BigInt("0x193513dbe180d700b189c529754f650b7b7882122c8a1e242a938d23ea9f765c"),
         c1: BigInt("0x11c939ea560caf31f552c9c4879b15865d38ba1dfb0f7a7d2ac46a4f0cae25ba"),
+    },
+};
+
+export const BLOCKLOCK_MAINNET_PUBLIC_KEY : BlockLockPublicKey = {
+    x: {
+        c0: BigInt("0x2b0985484a2503404d6c2b183d8be1e38aeb548f0435a935e4058499980c22a4"),
+        c1: BigInt("0x2eb81c7b1bb618894ad337b68d7ddf1d19f9b786d20b9de7735da410a98e458c"),
+    },
+    y: {
+        c0: BigInt("0x10c1587f14b640331d0dfd0edf9817e2c650c15e70c7bf408124d58e24b0ff3c"),
+        c1: BigInt("0xbd0526dce7136f54cf574cfd26e8d2d8c61c5218afb9d4466f9177674f436f4"),
     },
 };
 
@@ -63,8 +74,9 @@ const filecoinGasParams: GasParams = {
 }
 
 /* addresses of the deployed blocklockSender contracts */
-export const FURNACE_TESTNET_CONTRACT_ADDRESS = "0x241B6D7A4c4fb592e796094bf31A41c12b61d7fe"
+export const FURNACE_TESTNET_CONTRACT_ADDRESS = "0xEd925F96790F11678972b0F2c250498D782DDec9"
 export const FILECOIN_CALIBNET_CONTRACT_ADDRESS = "0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702"
+export const FILECOIN_MAINNET_CONTRACT_ADDRESS = "0x34092470CC59A097d770523931E3bC179370B44b"
 export const BASE_SEPOLIA_CONTRACT_ADDRESS = "0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e"
 export const POLYGON_POS_CONTRACT_ADDRESS = "0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e"
 
@@ -82,7 +94,7 @@ export class Blocklock {
         private readonly blocklockSenderContractAddress: string,
         chainId: bigint,
         gasParams: GasParams = defaultGasParams,
-        blocklockPublicKey: BlockLockPublicKey = BLOCKLOCK_DEFAULT_PUBLIC_KEY,
+        blocklockPublicKey: BlockLockPublicKey = BLOCKLOCK_TESTNET_PUBLIC_KEY,
     ) {
         this.blocklockSender = BlocklockSender__factory.connect(blocklockSenderContractAddress, signer)
         this.blocklockPublicKey = blocklockPublicKey
@@ -91,6 +103,9 @@ export class Blocklock {
         this.signer = signer
     }
 
+    static createFilecoinMainnet(rpc: Signer | Provider): Blocklock {
+        return new Blocklock(rpc, FILECOIN_MAINNET_CONTRACT_ADDRESS, 314n, filecoinGasParams, BLOCKLOCK_MAINNET_PUBLIC_KEY)
+    }
     static createFilecoinCalibnet(rpc: Signer | Provider): Blocklock {
         return new Blocklock(rpc, FILECOIN_CALIBNET_CONTRACT_ADDRESS, 314159n, filecoinGasParams)
     }
@@ -113,6 +128,11 @@ export class Blocklock {
             case "314159n":
             case "0x4cb2f":
                 return Blocklock.createFilecoinCalibnet(rpc)
+
+            case "314":
+            case "314n":
+            case "0x13a":
+                return Blocklock.createFilecoinMainnet(rpc)
 
             case "64630":
             case "64630n":
@@ -231,43 +251,6 @@ export class Blocklock {
         );
 
         return requestID;
-    }
-
-    async getRequestPriceEstimateWithCurrentChainGasPrice(callbackGasLimit: bigint): Promise<bigint> {
-        // 1. Get chain ID and fee data
-        const network = await this.signer.provider!.getNetwork();
-        const chainId = network.chainId;
-
-        const feeData = await this.signer.provider!.getFeeData();
-        
-        // feeData.gasPrice: Legacy flat gas price (used on non-EIP-1559 chains like Filecoin or older EVMs)
-        const gasPrice = feeData.gasPrice!;
-
-        // feeData.maxFeePerGas: Max total gas price we're willing to pay (base + priority), used in EIP-1559
-        const maxFeePerGas = feeData.maxFeePerGas!;
-
-        // feeData.maxPriorityFeePerGas: Tip to incentivize validators (goes directly to them)
-        const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas!;
-
-        // 2. Determine whether to use legacy or EIP-1559 pricing
-        const isFilecoin = Number(chainId) === 314 || Number(chainId) === 314159;
-
-        let txGasPrice: bigint;
-        if (isFilecoin) {
-            // Use legacy gasPrice directly
-            txGasPrice = gasPrice > 0? gasPrice * 10n : (maxFeePerGas + maxPriorityFeePerGas) * 10n;
-        } else {
-            // Use effective gas price based on EIP-1559
-            txGasPrice = maxFeePerGas + maxPriorityFeePerGas;
-        }
-
-        // 3. Estimate request price using the selected txGasPrice
-        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
-            callbackGasLimit,
-            txGasPrice 
-        );
-
-        return requestPrice;
     }
 
     /**
