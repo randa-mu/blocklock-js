@@ -12,7 +12,6 @@ import {
     UUPSProxy__factory
 } from "../src/generated"
 import {
-    SolidityEncoder,
     Blocklock,
     extractSingleLog, encodeCiphertextToSolidity, parseSolidityCiphertextString,
     encodeCondition
@@ -205,8 +204,9 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
 
         /** Blocklock js Integration */
 
-        // User or client side
-        const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress(), 31337n)
+            // User or client side
+
+        const blocklockjs = new Blocklock(wallet, createLocalNetworkConfig(await blocklockSender.getAddress()))
         const mockBlocklockReceiverInstance = MockBlocklockReceiver__factory.connect(await mockBlocklockReceiver.getAddress(), wallet)
 
         expect(await mockBlocklockReceiverInstance.plainTextValue()).toBe(BigInt(0))
@@ -214,8 +214,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
 
         const blockHeight = BigInt(await provider.getBlockNumber() + 2)
         const msg = ethers.parseEther("4")
-        const encoder = new SolidityEncoder()
-        const msgBytes = encoder.encodeUint256(msg)
+        const msgBytes = new AbiCoder().encode(["uint256"], [msg])
         const encodedMessage = getBytes(msgBytes)
 
         const encodedCondition = encodeCondition(blockHeight)
@@ -468,7 +467,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
         /** Blocklock js Integration */
 
             // User or client side
-        const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress(), 31337n)
+        const blocklockjs = new Blocklock(wallet, createLocalNetworkConfig(await blocklockSender.getAddress()))
         const mockBlocklockReceiverInstance = MockBlocklockReceiver__factory.connect(await mockBlocklockReceiver.getAddress(), wallet)
 
         expect(await mockBlocklockReceiverInstance.plainTextValue()).toBe(BigInt(0))
@@ -476,8 +475,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
 
         const blockHeight = BigInt(await provider.getBlockNumber() + 2)
         const msg = ethers.parseEther("4")
-        const encoder = new SolidityEncoder()
-        const msgBytes = encoder.encodeUint256(msg)
+        const msgBytes = new AbiCoder().encode(["uint256"], [msg])
         const encodedMessage = getBytes(msgBytes)
 
         const encodedCondition = encodeCondition(blockHeight)
@@ -660,6 +658,9 @@ function toHexString(str: string): string {
 
 // Anvil
 import {spawn, ChildProcessWithoutNullStreams} from "child_process";
+import {NetworkConfig} from "../src/networks"
+import {BLOCKLOCK_TESTNET_PUBLIC_KEY} from "../src/keys"
+import {encodeBytes} from "../src/utils"
 
 let anvilProcess: ChildProcessWithoutNullStreams
 
@@ -683,6 +684,30 @@ export async function startAnvil(): Promise<void> {
             reject(err)
         })
     })
+}
+
+function createLocalNetworkConfig(contractAddress: string): NetworkConfig {
+    return {
+        name: "local",
+        chainId: 31337n,
+        contractAddress: contractAddress as `0x{string}`,
+        publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
+        ibeOpts: {
+            hash: keccak_256,
+            k: 128,
+            expand_fn: "xmd",
+            dsts: {
+                H1_G1: encodeBytes(`BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x0000000000000000000000000000000000000000000000000000000000007a69_`),
+                H2: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H2_0x0000000000000000000000000000000000000000000000000000000000007a69_`),
+                H3: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H3_0x0000000000000000000000000000000000000000000000000000000000007a69_`),
+                H4: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H4_0x0000000000000000000000000000000000000000000000000000000000007a69_`),
+            }
+        },
+        gasLimit: 100_000,
+        maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
+        maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
+        gasBufferPercent: 100n,
+    }
 }
 
 export async function stopAnvil(): Promise<void> {
