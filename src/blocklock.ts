@@ -1,25 +1,24 @@
-import {getBytes, ethers, Signer, Provider, BigNumberish, BytesLike} from "ethers"
+import {getBytes, Signer, Provider, BigNumberish, FeeData} from "ethers"
 import {
     decodeCondition,
     encodeCiphertextToSolidity, encodeCondition,
-    encodeParams,
     extractSingleLog, parseSolidityCiphertext,
 } from "./ethers-utils"
-import {Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2, IbeOpts} from "./crypto/ibe-bn254"
+import {Ciphertext, decrypt_g1_with_preprocess, encrypt_towards_identity_g1, G2} from "./crypto/ibe-bn254"
 import {BlocklockSender, BlocklockSender__factory} from "./generated"
 import {TypesLib} from "./generated/BlocklockSender"
 import {
+    configForChainId,
+    NetworkConfig,
     ARBITRUM_SEPOLIA,
     AVALANCHE_C_CHAIN,
     BASE_SEPOLIA,
-    configForChainId,
     FILECOIN_CALIBNET,
     FILECOIN_MAINNET,
     FURNACE,
-    NetworkConfig, OPTIMISM_SEPOLIA,
+    OPTIMISM_SEPOLIA,
     POLYGON_POS, SEI_TESTNET
 } from "./networks"
-
 
 const BLOCKLOCK_MAX_MSG_LEN: number = 256
 
@@ -34,6 +33,7 @@ export class Blocklock {
         this.signer = signer
     }
 
+    // you can create a Blocklock client using a chainId or any of the static convenience functions at the bottom
     static createFromChainId(rpc: Signer | Provider, chainId: BigNumberish): Blocklock {
         return new Blocklock(rpc, configForChainId(chainId))
     }
@@ -48,41 +48,30 @@ export class Blocklock {
         if (this.signer.provider == null) {
             throw new Error("you must configure an RPC provider")
         }
+
         const conditionBytes = encodeCondition(blockHeight);
 
-        // 1. Get chain ID and fee data
-        const feeData = await this.signer.provider.getFeeData()
-
-        // feeData.gasPrice: Legacy flat gas price (used on non-EIP-1559 chains like Filecoin or older EVMs)
-        // const gasPrice = feeData.gasPrice!;
-
-        // feeData.maxFeePerGas: Max total gas price we're willing to pay (base + priority), used in EIP-1559
-        const maxFeePerGas = feeData.maxFeePerGas ?? 0n;
-
-        // feeData.maxPriorityFeePerGas: Tip to incentivize validators (goes directly to them)
-        const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? 0n;
-
-        // 2. Determine whether to use legacy or EIP-1559 pricing
-        let txGasPrice = (maxFeePerGas + maxPriorityFeePerGas) * 10n;
-
-        // 3. Estimate request price using the selected txGasPrice
+        // 1. Estimate request price using the selected txGasPrice
+        const feeData = await this.signer.provider.getFeeData();
+        // no idea where this magic number came from
+        const txGasPrice = getGasPrice(feeData, 10n)
         const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
             this.networkConfig.gasLimit,
             txGasPrice
         );
 
-        // 4. Apply buffer e.g. 100% = 2x total
+        // 2. Apply buffer e.g. 100% = 2x total
         const valueToSend = requestPrice + (requestPrice * this.networkConfig.gasBufferPercent) / 100n;
 
-        // 5. Estimate gas
+        // 3. Estimate gas
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
             this.networkConfig.gasLimit,
             conditionBytes,
             ciphertext,
             {
                 value: valueToSend,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
+                maxFeePerGas: feeData.maxFeePerGas,
+                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
             }
         );
 
@@ -94,8 +83,8 @@ export class Blocklock {
             {
                 value: valueToSend,
                 gasLimit: estimatedGas,
-                maxFeePerGas,
-                maxPriorityFeePerGas,
+                maxFeePerGas: feeData.maxFeePerGas,
+                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
             }
         );
 
@@ -175,23 +164,10 @@ export class Blocklock {
         if (this.signer.provider == null) {
             throw new Error("you must configure an RPC provider")
         }
-        // 1. Get fee data
+
         const feeData = await this.signer.provider.getFeeData();
-
-        // feeData.maxFeePerGas: Max total gas price we're willing to pay (base + priority), used in EIP-1559
-        const maxFeePerGas = feeData.maxFeePerGas!;
-
-        // feeData.maxPriorityFeePerGas: Tip to incentivize validators (goes directly to them)
-        const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas!;
-
-        // 2. Determine whether to use legacy or EIP-1559 pricing
-        let txGasPrice = (maxFeePerGas + maxPriorityFeePerGas) * gasPriceMultiplier;
-
-        // 3. Estimate request price using the selected txGasPrice
-        return await this.blocklockSender.estimateRequestPriceNative(
-            callbackGasLimit,
-            txGasPrice
-        );
+        const requestGasPrice = getGasPrice(feeData, gasPriceMultiplier)
+        return await this.blocklockSender.estimateRequestPriceNative(callbackGasLimit, requestGasPrice);
     }
 
     /**
@@ -302,4 +278,30 @@ export type BlocklockRequest = {
 
 export type BlocklockStatus = BlocklockRequest & {
     decryptionKey: Uint8Array,
+}
+
+function getGasPrice(feeData: FeeData, gasPriceMultiplier: bigint): bigint {
+    // feeData.gasPrice: Legacy flat gas price (used on non-EIP-1559 chains like Filecoin or older EVMs)
+    if (feeData.gasPrice != null) {
+        return feeData.gasPrice
+    }
+
+    // if gasPrice wasn't set, we can assume EIP-1559 pricing
+
+    // feeData.maxFeePerGas: Max total gas price we're willing to pay
+    const maxFeePerGas = feeData.maxFeePerGas ?? 0n;
+
+    // feeData.maxPriorityFeePerGas: Tip to incentivize validators (goes directly to them)
+    // 0 is allowed in the spec but discouraged in reality
+    const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ?? 0n;
+    if (maxPriorityFeePerGas === 0n) {
+        console.warn("priority fee was empty - this will probably lead to a reeeeeally long confirmation time")
+    }
+
+    if (maxFeePerGas === 0n) {
+        throw new Error("the RPC provided unexpected gas results: neither parameters for legacy nor EIP-1559 gas pricing were provided");
+    }
+
+    // (base + priority) is used in EIP-1559
+    return (maxFeePerGas + maxPriorityFeePerGas) * gasPriceMultiplier;
 }
