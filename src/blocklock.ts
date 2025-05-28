@@ -50,7 +50,7 @@ export class Blocklock {
         blockHeight: bigint,
         ciphertext: TypesLib.CiphertextStruct,
         callbackGasLimit: bigint = this.networkConfig.callbackGasLimitDefault,
-        gasMultiplier: bigint = 1n
+        gasMultiplier: bigint = this.networkConfig.gasMultiplierDefault,
     ): Promise<bigint> {
         if (this.signer.provider == null) {
             throw new Error("you must configure an RPC provider")
@@ -164,7 +164,10 @@ export class Blocklock {
         }
     }
 
-    async getRequestPriceEstimateWithCurrentChainGasPrice(callbackGasLimit: bigint, gasPriceMultiplier: bigint): Promise<bigint> {
+    async getRequestPriceEstimateWithCurrentChainGasPrice(
+        callbackGasLimit: bigint = this.networkConfig.callbackGasLimitDefault,
+        gasPriceMultiplier: bigint = this.networkConfig.gasMultiplierDefault,
+    ): Promise<bigint> {
         if (this.signer.provider == null) {
             throw new Error("you must configure an RPC provider");
         }
