@@ -205,7 +205,7 @@ describe.skip("Blocklock blockchain integration tests with Anvil", () => {
 
         /** Blocklock js Integration */
 
-            // User or client side
+        // User or client side
         const blocklockjs = new Blocklock(wallet, await blocklockSender.getAddress(), 31337n)
         const mockBlocklockReceiverInstance = MockBlocklockReceiver__factory.connect(await mockBlocklockReceiver.getAddress(), wallet)
 

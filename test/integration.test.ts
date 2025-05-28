@@ -2,8 +2,9 @@ import {describe, it, expect, beforeAll} from "@jest/globals"
 import {equalBytes} from "@noble/curves/abstract/utils"
 import dotenv from "dotenv"
 import {JsonRpcProvider, NonceManager, Provider, Wallet, WebSocketProvider} from "ethers"
+import {BlocklockSender__factory} from "../src/generated"
 
-import {Blocklock} from "../src"
+import {Blocklock, FILECOIN_CALIBNET_CONTRACT_ADDRESS} from "../src"
 
 const TIMEOUT = 60_000
 const FILECOIN_TIMEOUT = 300_000
@@ -28,6 +29,18 @@ describe("Blocklock integration tests with supported networks", () => {
         const blocklock = Blocklock.createFilecoinCalibnet(wallet)
         await runEncryptionTest(rpc, blocklock)
     }, FILECOIN_TIMEOUT)
+
+    it("should return request price estimate with current chain gas price and multiplier or buffer for filecoin calibnet", async () => {
+        const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createFilecoinCalibnet(wallet)
+        const callbackGasLimit = 100000n
+        const gasPriceMultiplier = 50n;
+        const blocklockSender = BlocklockSender__factory.connect(FILECOIN_CALIBNET_CONTRACT_ADDRESS, wallet)
+        const estimatedPrice = await blocklockSender.calculateRequestPriceNative(callbackGasLimit)
+        const estimatedRequestPriceWithBuffer = await blocklock.getRequestPriceEstimateWithCurrentChainGasPrice(callbackGasLimit, gasPriceMultiplier)
+        expect(estimatedRequestPriceWithBuffer).toBeGreaterThan(estimatedPrice)
+    })
 
     it("should encrypt and decrypt for filecoin mainnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
