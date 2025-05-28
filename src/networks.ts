@@ -13,8 +13,9 @@ export type NetworkConfig = {
     gasLimit: number
     maxFeePerGas: bigint
     maxPriorityFeePerGas: bigint
-    // e.g. 100% = 2x total)
+    // e.g. 100% = 2x total
     gasBufferPercent: bigint
+    callbackGasLimitDefault: bigint
 }
 
 export const FILECOIN_CALIBNET: NetworkConfig = {
@@ -37,6 +38,7 @@ export const FILECOIN_CALIBNET: NetworkConfig = {
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 300n,
+    callbackGasLimitDefault: 444_000_000n,
 }
 
 export const FILECOIN_MAINNET: NetworkConfig = {
@@ -59,6 +61,7 @@ export const FILECOIN_MAINNET: NetworkConfig = {
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 300n,
+    callbackGasLimitDefault: 444_000_000n,
 }
 
 export const BASE_SEPOLIA: NetworkConfig = {
@@ -81,6 +84,7 @@ export const BASE_SEPOLIA: NetworkConfig = {
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 100n,
+    callbackGasLimitDefault: 1_000_000n,
 }
 
 export const POLYGON_POS: NetworkConfig = {
@@ -103,6 +107,7 @@ export const POLYGON_POS: NetworkConfig = {
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 100n,
+    callbackGasLimitDefault: 1_000_000n,
 }
 
 export const FURNACE: NetworkConfig = {
@@ -125,6 +130,7 @@ export const FURNACE: NetworkConfig = {
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 100n,
+    callbackGasLimitDefault: 1_000_000n,
 }
 
 export const AVALANCHE_C_CHAIN: NetworkConfig = {
@@ -147,6 +153,7 @@ export const AVALANCHE_C_CHAIN: NetworkConfig = {
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 100n,
+    callbackGasLimitDefault: 1_000_000n,
 }
 
 export const OPTIMISM_SEPOLIA: NetworkConfig = {
@@ -169,6 +176,7 @@ export const OPTIMISM_SEPOLIA: NetworkConfig = {
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 100n,
+    callbackGasLimitDefault: 1_000_000n,
 }
 
 export const ARBITRUM_SEPOLIA: NetworkConfig = {
@@ -191,6 +199,7 @@ export const ARBITRUM_SEPOLIA: NetworkConfig = {
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 100n,
+    callbackGasLimitDefault: 1_000_000n,
 }
 
 export const SEI_TESTNET: NetworkConfig = {
@@ -213,6 +222,7 @@ export const SEI_TESTNET: NetworkConfig = {
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 100n,
+    callbackGasLimitDefault: 1_000_000n,
 }
 
 export const SUPPORTED_TESTNETS = [FILECOIN_CALIBNET, BASE_SEPOLIA, FURNACE, AVALANCHE_C_CHAIN, OPTIMISM_SEPOLIA, ARBITRUM_SEPOLIA, SEI_TESTNET]

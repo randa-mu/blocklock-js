@@ -42,9 +42,16 @@ export class Blocklock {
      * Request a blocklock decryption at block number blockHeight.
      * @param blockHeight time at which the decryption should key should be released
      * @param ciphertext encrypted message to store on chain
+     * @param callbackGasLimit the maximum amount of gas the dcipher network should spend on the callback
+     * @param gasMultiplier a multiplier to use on the gas price for the chain
      * @returns blocklock request id as a string
      */
-    async requestBlocklock(blockHeight: bigint, ciphertext: TypesLib.CiphertextStruct): Promise<bigint> {
+    async requestBlocklock(
+        blockHeight: bigint,
+        ciphertext: TypesLib.CiphertextStruct,
+        callbackGasLimit: bigint = this.networkConfig.callbackGasLimitDefault,
+        gasMultiplier: bigint = 1n
+    ): Promise<bigint> {
         if (this.signer.provider == null) {
             throw new Error("you must configure an RPC provider")
         }
@@ -54,18 +61,15 @@ export class Blocklock {
         // 1. Estimate request price using the selected txGasPrice
         const feeData = await this.signer.provider.getFeeData();
         // no idea where this magic number came from
-        const txGasPrice = getGasPrice(feeData, 10n)
-        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
-            this.networkConfig.gasLimit,
-            txGasPrice
-        );
+        const txGasPrice = getGasPrice(feeData, gasMultiplier);
+        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(callbackGasLimit, txGasPrice);
 
         // 2. Apply buffer e.g. 100% = 2x total
         const valueToSend = requestPrice + (requestPrice * this.networkConfig.gasBufferPercent) / 100n;
 
         // 3. Estimate gas
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
-            this.networkConfig.gasLimit,
+            callbackGasLimit,
             conditionBytes,
             ciphertext,
             {
@@ -77,7 +81,7 @@ export class Blocklock {
 
         // 6. Send transaction
         const tx = await this.blocklockSender.requestBlocklock(
-            this.networkConfig.gasLimit,
+            callbackGasLimit,
             conditionBytes,
             ciphertext,
             {
@@ -162,11 +166,11 @@ export class Blocklock {
 
     async getRequestPriceEstimateWithCurrentChainGasPrice(callbackGasLimit: bigint, gasPriceMultiplier: bigint): Promise<bigint> {
         if (this.signer.provider == null) {
-            throw new Error("you must configure an RPC provider")
+            throw new Error("you must configure an RPC provider");
         }
 
         const feeData = await this.signer.provider.getFeeData();
-        const requestGasPrice = getGasPrice(feeData, gasPriceMultiplier)
+        const requestGasPrice = getGasPrice(feeData, gasPriceMultiplier);
         return await this.blocklockSender.estimateRequestPriceNative(callbackGasLimit, requestGasPrice);
     }
 
