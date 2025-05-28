@@ -20,7 +20,7 @@ export type NetworkConfig = {
 export const FILECOIN_CALIBNET: NetworkConfig = {
     name: "filecoin_calibnet",
     chainId: 314159n,
-    contractAddress: "0x91c7774C7476F3832919adE7690467DF91bfd919",
+    contractAddress: "0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702",
     publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
@@ -42,7 +42,7 @@ export const FILECOIN_CALIBNET: NetworkConfig = {
 export const FILECOIN_MAINNET: NetworkConfig = {
     name: "filecoin_mainnet",
     chainId: 314n,
-    contractAddress: "0xDD6FdE56432Cd3c868FEC7F1430F741967Fb0de8",
+    contractAddress: "0x34092470CC59A097d770523931E3bC179370B44b",
     publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
@@ -64,7 +64,7 @@ export const FILECOIN_MAINNET: NetworkConfig = {
 export const BASE_SEPOLIA: NetworkConfig = {
     name: "base_sepolia",
     chainId: 84532n,
-    contractAddress: "0x455bfe4B1B4393b458d413E2B0778A95F9B84B82",
+    contractAddress: "0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e",
     publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
@@ -86,7 +86,7 @@ export const BASE_SEPOLIA: NetworkConfig = {
 export const POLYGON_POS: NetworkConfig = {
     name: "polygon_pos",
     chainId: 137n,
-    contractAddress: "0x455bfe4B1B4393b458d413E2B0778A95F9B84B82",
+    contractAddress: "0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e",
     publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
@@ -108,7 +108,7 @@ export const POLYGON_POS: NetworkConfig = {
 export const FURNACE: NetworkConfig = {
     name: "furnace",
     chainId: 64630n,
-    contractAddress: "0x1c3E82cE0b42c48aE0684938207E68e32A256c04",
+    contractAddress: "0xEd925F96790F11678972b0F2c250498D782DDec9",
     publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
@@ -130,7 +130,7 @@ export const FURNACE: NetworkConfig = {
 export const AVALANCHE_C_CHAIN: NetworkConfig = {
     name: "avalanche_c_chain",
     chainId: 43114n,
-    contractAddress: "0xf4e080Db4765C856c0af43e4A8C4e31aA3b48779",
+    contractAddress: "0xd22302849a87d5B00f13e504581BC086300DA080",
     publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
@@ -152,7 +152,7 @@ export const AVALANCHE_C_CHAIN: NetworkConfig = {
 export const OPTIMISM_SEPOLIA: NetworkConfig = {
     name: "optimism_sepolia",
     chainId: 11155420n,
-    contractAddress: "0xf4e080Db4765C856c0af43e4A8C4e31aA3b48779",
+    contractAddress: "0xd22302849a87d5B00f13e504581BC086300DA080",
     publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
@@ -174,7 +174,7 @@ export const OPTIMISM_SEPOLIA: NetworkConfig = {
 export const ARBITRUM_SEPOLIA: NetworkConfig = {
     name: "arbitrum_sepolia",
     chainId: 421614n,
-    contractAddress: "0xf4e080Db4765C856c0af43e4A8C4e31aA3b48779",
+    contractAddress: "0xd22302849a87d5B00f13e504581BC086300DA080",
     publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
@@ -196,7 +196,7 @@ export const ARBITRUM_SEPOLIA: NetworkConfig = {
 export const SEI_TESTNET: NetworkConfig = {
     name: "sei_testnet",
     chainId: 1328n,
-    contractAddress: "0xf4e080Db4765C856c0af43e4A8C4e31aA3b48779",
+    contractAddress: "0xd22302849a87d5B00f13e504581BC086300DA080",
     publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
