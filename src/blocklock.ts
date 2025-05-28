@@ -171,7 +171,7 @@ export class Blocklock {
 
         const feeData = await this.signer.provider.getFeeData();
         const requestGasPrice = getGasPrice(feeData, gasPriceMultiplier);
-        return await this.blocklockSender.estimateRequestPriceNative(callbackGasLimit, requestGasPrice);
+        return this.blocklockSender.estimateRequestPriceNative(callbackGasLimit, requestGasPrice);
     }
 
     /**
