@@ -77,6 +77,7 @@ export class Blocklock {
                 value: valueToSend,
                 maxFeePerGas: feeData.maxFeePerGas,
                 maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+                gasLimit: this.networkConfig.gasLimit,
             }
         );
 
@@ -90,6 +91,7 @@ export class Blocklock {
                 gasLimit: estimatedGas,
                 maxFeePerGas: feeData.maxFeePerGas,
                 maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+                gasLimit: this.networkConfig.gasLimit,
             }
         );
 
