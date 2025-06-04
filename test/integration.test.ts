@@ -49,6 +49,26 @@ describe("Blocklock integration tests with supported networks", () => {
         await runEncryptionTest(rpc, blocklock)
     }, FILECOIN_TIMEOUT)
 
+    it("should return non-zero request price to cover BLS operations when callbackGasLimit is zero", async () => {
+        const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createFilecoinMainnet(wallet)
+        const callbackGasLimit = 0n;
+        const estimatedRequestPrice = await blocklock.calculateRequestPriceNative(callbackGasLimit);
+        expect(estimatedRequestPrice).toBeGreaterThan(0n);
+    }, FILECOIN_TIMEOUT)
+
+    it("should return higher request price for non-zero callbackGasLimit", async () => {
+        const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createFilecoinMainnet(wallet)
+        let callbackGasLimit = 0n;
+        const estimatedRequestPriceForZeroCallback = await blocklock.calculateRequestPriceNative(callbackGasLimit);
+        callbackGasLimit = 500_000n;
+        const estimatedRequestPriceForNonZeroCallback = await blocklock.calculateRequestPriceNative(callbackGasLimit);
+        expect(estimatedRequestPriceForNonZeroCallback).toBeGreaterThan(estimatedRequestPriceForZeroCallback);
+    }, FILECOIN_TIMEOUT)
+
     it("should encrypt and decrypt for polygon pos", async () => {
         const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
