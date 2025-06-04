@@ -175,20 +175,7 @@ export class Blocklock {
             ciphertext: parseSolidityCiphertext(ciphertext),
         }
     }
-
-    async getRequestPriceEstimateWithCurrentChainGasPrice(
-        callbackGasLimit: bigint = this.networkConfig.callbackGasLimitDefault,
-        gasPriceMultiplier: bigint = this.networkConfig.gasMultiplierDefault,
-    ): Promise<bigint> {
-        if (this.signer.provider == null) {
-            throw new Error("you must configure an RPC provider");
-        }
-
-        const feeData = await this.signer.provider.getFeeData();
-        const requestGasPrice = getGasPrice(feeData, gasPriceMultiplier);
-        return this.blocklockSender.estimateRequestPriceNative(callbackGasLimit, requestGasPrice);
-    }
-
+    
     /**
      * Encrypt a message that can be decrypted once a certain blockHeight is reached.
      * @param message plaintext to encrypt

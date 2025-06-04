@@ -31,18 +31,6 @@ describe("Blocklock integration tests with supported networks", () => {
         await runEncryptionTest(rpc, blocklock)
     }, FILECOIN_TIMEOUT)
 
-    it("should return request price estimate with current chain gas price and multiplier or buffer for filecoin calibnet", async () => {
-        const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createFilecoinCalibnet(wallet)
-        const callbackGasLimit = 100000n
-        const gasPriceMultiplier = 50n;
-        const blocklockSender = BlocklockSender__factory.connect(FILECOIN_CALIBNET.contractAddress, wallet)
-        const estimatedPrice = await blocklockSender.calculateRequestPriceNative(callbackGasLimit)
-        const estimatedRequestPriceWithBuffer = await blocklock.getRequestPriceEstimateWithCurrentChainGasPrice(callbackGasLimit, gasPriceMultiplier)
-        expect(estimatedRequestPriceWithBuffer).toBeGreaterThan(estimatedPrice)
-    })
-
     it("should encrypt and decrypt for filecoin mainnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
