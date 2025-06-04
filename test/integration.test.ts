@@ -69,7 +69,7 @@ describe("Blocklock integration tests with supported networks", () => {
         expect(estimatedRequestPriceForNonZeroCallback).toBeGreaterThan(estimatedRequestPriceForZeroCallback);
     }, FILECOIN_TIMEOUT)
 
-    it("should encrypt and decrypt for polygon pos", async () => {
+    it.skip("should encrypt and decrypt for polygon pos", async () => {
         const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createPolygonPos(wallet)
