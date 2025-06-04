@@ -61,9 +61,8 @@ export class Blocklock {
 
         // 1. Estimate request price using the selected txGasPrice
         const feeData = await this.signer.provider.getFeeData();
-        // no idea where this magic number came from
-        const txGasPrice = getGasPrice(feeData, gasMultiplier);
-        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(callbackGasLimit, txGasPrice);
+
+        const requestPrice = await this.calculateRequestPriceNative(callbackGasLimit);
 
         // 2. Apply buffer e.g. 100% = 2x total
         const valueToSend = requestPrice + (requestPrice * this.networkConfig.gasBufferPercent) / 100n;
