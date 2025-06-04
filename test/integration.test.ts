@@ -3,9 +3,6 @@ import {equalBytes} from "@noble/curves/abstract/utils"
 import dotenv from "dotenv"
 import {JsonRpcProvider, NonceManager, Provider, Wallet, WebSocketProvider} from "ethers"
 import {Blocklock} from "../src"
-import {BlocklockSender__factory} from "../src/generated"
-import {FILECOIN_CALIBNET} from "../src/networks"
-
 
 const TIMEOUT = 60_000
 const FILECOIN_TIMEOUT = 300_000
