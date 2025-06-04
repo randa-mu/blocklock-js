@@ -202,7 +202,7 @@ export class Blocklock {
         );
 
         // 4. Apply buffer (e.g. 100% = 2× total)
-        const bufferPercent = isFilecoin(chainId) ? 300n : 100n;
+        const bufferPercent = isFilecoin(chainId) ? 300n : 20n;
         const valueToSend = requestPrice + (requestPrice * bufferPercent) / 100n;
 
         // 5. Estimate gas
