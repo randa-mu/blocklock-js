@@ -247,6 +247,16 @@ export class Blocklock {
     }
 
     /**
+     * Calculates the request price for a blocklock request given the callbackGasLimit.
+     * @param callbackGasLimit The callbackGasLimit to use when fulfilling the request with a decryption key.
+     * @returns The estimated request price
+     */
+    async calculateRequestPriceNative(callbackGasLimit: bigint): Promise<bigint> {
+        const requestPrice = await this.blocklockSender.calculateRequestPriceNative(callbackGasLimit)
+        return requestPrice;
+    }
+
+    /**
      * Fetch the details of a blocklock request, decryption key / signature excluded.
      * This function should be called to fetch pending blocklock requests.
      * @param requestId blocklock request id
