@@ -62,12 +62,12 @@ describe("Blocklock integration tests with supported networks", () => {
     //     await runEncryptionTest(rpc, blocklock)
     // }, TIMEOUT)
 
-    // it("should encrypt and decrypt for base sepolia", async () => {
-    //     const rpc = createProvider(process.env.BASE_RPC_URL || "")
-    //     const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
-    //     const blocklock = Blocklock.createBaseSepolia(wallet)
-    //     await runEncryptionTest(rpc, blocklock)
-    // }, TIMEOUT)
+    it("should encrypt and decrypt for base sepolia", async () => {
+        const rpc = createProvider(process.env.BASE_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createBaseSepolia(wallet)
+        await runEncryptionTest(rpc, blocklock)
+    }, TIMEOUT)
 
     // it("should encrypt and decrypt for avalanche c chain", async () => {
     //     const rpc = createProvider(process.env.AVALANCHE_C_CHAIN_RPC_URL || "")
