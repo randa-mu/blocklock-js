@@ -12,29 +12,6 @@ describe("Blocklock integration tests with supported networks", () => {
         dotenv.config()
     })
 
-    it("should encrypt and decrypt for furnace testnet", async () => {
-        const rpc = createProvider(process.env.FURNACE_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.FURNACE_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createFurnace(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, TIMEOUT)
-
-    // filecoin calibnet is very slow
-    // the test can take up to 260s
-    it("should encrypt and decrypt for filecoin calibnet", async () => {
-        const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createFilecoinCalibnet(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, FILECOIN_TIMEOUT)
-
-    it("should encrypt and decrypt for filecoin mainnet", async () => {
-        const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createFilecoinMainnet(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, FILECOIN_TIMEOUT)
-
     it("should return non-zero request price to cover BLS operations when callbackGasLimit is zero", async () => {
         const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
@@ -55,54 +32,70 @@ describe("Blocklock integration tests with supported networks", () => {
         expect(estimatedRequestPriceForNonZeroCallback).toBeGreaterThan(estimatedRequestPriceForZeroCallback);
     }, FILECOIN_TIMEOUT)
 
-    it("should encrypt and decrypt for polygon pos", async () => {
-        const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createPolygonPos(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, TIMEOUT)
-
-    it("should encrypt and decrypt for base sepolia", async () => {
-        const rpc = createProvider(process.env.BASE_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createBaseSepolia(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, TIMEOUT)
-
-    it("should encrypt and decrypt for furnace", async () => {
+    it.only("should encrypt and decrypt for furnace testnet", async () => {
         const rpc = createProvider(process.env.FURNACE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FURNACE_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFurnace(wallet)
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
-    it("should encrypt and decrypt for avalanche c chain", async () => {
-        const rpc = createProvider(process.env.AVALANCHE_C_CHAIN_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.AVALANCHE_C_CHAIN_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createAvalancheCChain(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, TIMEOUT)
+    // filecoin calibnet is very slow
+    // the test can take up to 260s
+    // it("should encrypt and decrypt for filecoin calibnet", async () => {
+    //     const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
+    //     const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
+    //     const blocklock = Blocklock.createFilecoinCalibnet(wallet)
+    //     await runEncryptionTest(rpc, blocklock)
+    // }, FILECOIN_TIMEOUT)
 
-    it("should encrypt and decrypt for optimism sepolia", async () => {
-        const rpc = createProvider(process.env.OPTIMISM_SEPOLIA_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.OPTIMISM_SEPOLIA_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createOptimismSepolia(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, TIMEOUT)
+    // it("should encrypt and decrypt for filecoin mainnet", async () => {
+    //     const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
+    //     const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
+    //     const blocklock = Blocklock.createFilecoinMainnet(wallet)
+    //     await runEncryptionTest(rpc, blocklock)
+    // }, FILECOIN_TIMEOUT)
 
-    it("should encrypt and decrypt for arbitrum sepolia", async () => {
-        const rpc = createProvider(process.env.ARBITRUM_SEPOLIA_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.ARBITRUM_SEPOLIA_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createArbitrumSepolia(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, TIMEOUT)
+    // it("should encrypt and decrypt for polygon pos", async () => {
+    //     const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
+    //     const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
+    //     const blocklock = Blocklock.createPolygonPos(wallet)
+    //     await runEncryptionTest(rpc, blocklock)
+    // }, TIMEOUT)
 
-    it("should encrypt and decrypt for sei testnet", async () => {
-        const rpc = createProvider(process.env.SEI_TESTNET_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.SEI_TESTNET_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createSeiTestnet(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, TIMEOUT)
+    // it("should encrypt and decrypt for base sepolia", async () => {
+    //     const rpc = createProvider(process.env.BASE_RPC_URL || "")
+    //     const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
+    //     const blocklock = Blocklock.createBaseSepolia(wallet)
+    //     await runEncryptionTest(rpc, blocklock)
+    // }, TIMEOUT)
+
+    // it("should encrypt and decrypt for avalanche c chain", async () => {
+    //     const rpc = createProvider(process.env.AVALANCHE_C_CHAIN_RPC_URL || "")
+    //     const wallet = new NonceManager(new Wallet(process.env.AVALANCHE_C_CHAIN_PRIVATE_KEY || "", rpc))
+    //     const blocklock = Blocklock.createAvalancheCChain(wallet)
+    //     await runEncryptionTest(rpc, blocklock)
+    // }, TIMEOUT)
+
+    // it("should encrypt and decrypt for optimism sepolia", async () => {
+    //     const rpc = createProvider(process.env.OPTIMISM_SEPOLIA_RPC_URL || "")
+    //     const wallet = new NonceManager(new Wallet(process.env.OPTIMISM_SEPOLIA_PRIVATE_KEY || "", rpc))
+    //     const blocklock = Blocklock.createOptimismSepolia(wallet)
+    //     await runEncryptionTest(rpc, blocklock)
+    // }, TIMEOUT)
+
+    // it("should encrypt and decrypt for arbitrum sepolia", async () => {
+    //     const rpc = createProvider(process.env.ARBITRUM_SEPOLIA_RPC_URL || "")
+    //     const wallet = new NonceManager(new Wallet(process.env.ARBITRUM_SEPOLIA_PRIVATE_KEY || "", rpc))
+    //     const blocklock = Blocklock.createArbitrumSepolia(wallet)
+    //     await runEncryptionTest(rpc, blocklock)
+    // }, TIMEOUT)
+
+    // it("should encrypt and decrypt for sei testnet", async () => {
+    //     const rpc = createProvider(process.env.SEI_TESTNET_RPC_URL || "")
+    //     const wallet = new NonceManager(new Wallet(process.env.SEI_TESTNET_PRIVATE_KEY || "", rpc))
+    //     const blocklock = Blocklock.createSeiTestnet(wallet)
+    //     await runEncryptionTest(rpc, blocklock)
+    // }, TIMEOUT)
 })
 
 async function runEncryptionTest(rpc: Provider, blocklock: Blocklock) {

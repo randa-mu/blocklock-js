@@ -51,7 +51,8 @@ export class Blocklock {
         blockHeight: bigint,
         ciphertext: TypesLib.CiphertextStruct,
         callbackGasLimit: bigint = this.networkConfig.callbackGasLimitDefault,
-        gasMultiplier: bigint = this.networkConfig.gasMultiplierDefault,
+        // This variable is not required. The provider will use current network gas price in calculateRequestPriceNative
+        // gasMultiplier: bigint = this.networkConfig.gasMultiplierDefault, 
     ): Promise<bigint> {
         if (this.signer.provider == null) {
             throw new Error("you must configure an RPC provider")

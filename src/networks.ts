@@ -131,7 +131,7 @@ export const FURNACE: NetworkConfig = {
             H4: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H4_0x000000000000000000000000000000000000000000000000000000000000fc76_`),
         }
     },
-    gasLimit: 100_000,
+    gasLimit: 1_000_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 100n,
