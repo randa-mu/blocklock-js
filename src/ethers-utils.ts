@@ -1,7 +1,7 @@
 // extracts an event log of a given type from a transaction receipt that matches the address provided
 import {
     AbiCoder,
-    BytesLike,
+    BytesLike, ethers,
     EthersError,
     EventFragment,
     getBytes,
@@ -111,4 +111,20 @@ export function encodeCiphertextToSolidity(ciphertext: Ciphertext): TypesLib.Cip
         v: ciphertext.V,
         w: ciphertext.W,
     }
+}
+
+// encodes a block height condition with the correct prefix
+export function encodeCondition(blockHeight: bigint): Uint8Array {
+    const blockHeightBytes = getBytes(encodeParams(["uint256"], [blockHeight]))
+    // 0x42 is the magic 'B' tag for the `blockHeight` condition
+    return new Uint8Array([0x42, ...blockHeightBytes])
+}
+
+export function decodeCondition(bytes: BytesLike): bigint {
+    const b = getBytes(bytes)
+    if (b[0] !== 0x42) {
+        throw new Error("unexpected condition tag: expected `b` for blocklock!")
+    }
+    const [round] = ethers.AbiCoder.defaultAbiCoder().decode(["uint256"], b.slice(1))
+    return round
 }

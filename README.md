@@ -1,19 +1,12 @@
 ## blocklock-js
 
-blocklock-js is a TypeScript library designed to simplify the process of generating encrypted data off-chain for the dcrypt network. It enables developers to securely encrypt data tied to a user-specified future chain height. The encrypted data can then be used to create on-chain timelock encryption requests in smart contracts. Once the specified chain height is mined, the user’s smart contract will receive the decryption keys automatically.
+`blocklock-js` is a TypeScript library that simplifies generating encrypted data off-chain for use with the dcrypt network. It allows developers to securely encrypt data tied to a user-defined condition, e.g., a future block height. This encrypted payload can then be referenced in on-chain timelock encryption requests via smart contracts. Once the specified block is mined, the decryption key is automatically delivered to the smart contract via a callback, enabling conditional data access on-chain.
 
-
-### Key Capabilities
-
-Using this library, developers can:
-
-* Encode and encrypt various Solidity-compatible data types.
-* Encrypt the encoded data off-chain using a public key, which can then be integrated into smart contracts for timelock encryption requests.
-
+The library also enables developers to track the status of a conditional encryption request.
 
 ### On-Chain Integration
 
-Solidity interfaces and associated documentation for them can be found in the [blocklock-solidity](https://github.com/randa-mu/blocklock-solidity.git) repository.
+Solidity interfaces and associated documentation can be found in the [blocklock-solidity](https://github.com/randa-mu/blocklock-solidity.git) repository.
 
 #### Smart Contract Addresses
 
@@ -27,8 +20,13 @@ A lightweight proxy contract that enables upgradeability for the `BlocklockSende
 | Filecoin Calibration Testnet | [0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702](https://calibration.filfox.info/en/address/0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702) |
 | Base Sepolia               | [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://sepolia.basescan.org/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e) |
 | Polygon PoS                | [0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e](https://polygonscan.com/address/0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e)    |
+| Optimism Sepolia           | [0xd22302849a87d5B00f13e504581BC086300DA080](https://sepolia-optimism.etherscan.io/address/0xd22302849a87d5B00f13e504581BC086300DA080)    |
+| Arbitrum Sepolia           | [0xd22302849a87d5B00f13e504581BC086300DA080](https://sepolia.arbiscan.io/address/0xd22302849a87d5B00f13e504581BC086300DA080)    |
+| Avalanche (C-Chain) Testnet           | [0xd22302849a87d5B00f13e504581BC086300DA080](https://testnet.snowtrace.io/address/0xd22302849a87d5B00f13e504581BC086300DA080)    |
+| Sei Testnet           | [0xd22302849a87d5B00f13e504581BC086300DA080](https://seitrace.com/address/0xd22302849a87d5B00f13e504581BC086300DA080?chain=atlantic-2)    |
 
-**Others**
+
+**Other contract addresses**
 You should only need the `BlocklockSender` proxy above, but a full list of contract addresses can be found in the [solidity repo's README](https://github.com/randa-mu/blocklock-solidity).
 
 
@@ -41,53 +39,68 @@ npm install blocklock-js
 ```
 
 
-
 ### Usage Example
 
 #### Prerequisites
 
 * [ethers](https://www.npmjs.com/package/ethers) for wallet setup and message encoding.
+* Node.js v22+
+
+#### Setup
+
+1. Create a `.env` file or set the following environment variables, e.g., for Filecoin mainnet:
+
+```bash
+RPC_URL=https://your-rpc-url
+PRIVATE_KEY=your_private_key
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
 
 
-Here’s how to use BlocklockJS to encrypt data and create an on-chain timelock encryption request.
+#### Usage example
 
-#### Example: Encrypting a uint256 (4 ETH) for Decryption 2 Blocks Later
+This example demonstrates encrypting a `uint256` value and using the Ciphertext and condition bytes in a user smart contract that implements the `createTimelockRequestWithDirectFunding` function to create a timelock encryption request on-chain. An example use case is a sealed-bid auction where bid amounts are encrypted and only decrypted at the auction ending block number.
 
-This example demonstrates encrypting a uint256 value and sending it to a user smart contract that implements the createTimelockRequest function. In a different use case, e.g., sealed bid auction, this could be refactored into a `sealedBid` function.
 The example user smart contract source code can be found [here](https://github.com/randa-mu/blocklock-solidity/blob/main/src/mocks/MockBlocklockReceiver.sol).
 
-```js
-import { ethers, getBytes } from "ethers";
-import { Blocklock, SolidityEncoder, encodeCiphertextToSolidity, encodeCondition } from "blocklock-js";
+This script shows how to encrypt data with a future block as a condition
+
+
+```ts
+import { createProvider, Blocklock, encodeCiphertextToSolidity, encodeCondition } from "blocklock-js"
+import { Wallet, Provider, NonceManager, ethers, getBytes } from "ethers"
 import { MockBlocklockReceiver__factory } from "../types"; // Users' solidity contract TypeScript binding
 
 async function main() {
-  // User wallet
-  const wallet = new ethers.Wallet("your-private-key", ethers.provider);
-  // User contract
-  const mockBlocklockReceiver = MockBlocklockReceiver__factory.connect("user blocklcok receiver contract address", wallet);
-
-  // Ensure plainTextValue is initially 0
-  console.log("Initial plainTextValue:", (await mockBlocklockReceiver.plainTextValue()).toString());
-
-  // Set block height (current block + 2)
-  const blockHeight = BigInt(await ethers.provider.getBlockNumber() + 2);
+  const rpc = createProvider(process.env.RPC_URL || "")
+  const wallet = new NonceManager(new Wallet(process.env.PRIVATE_KEY || "", rpc))
+  // Create a Blocklock instance for the Filecoin mainnet
+  const blocklock = Blocklock.createFilecoinMainnet(wallet)
 
   // Value to encrypt (4 ETH as uint256)
   const msg = ethers.utils.parseEther("4");
+  const plaintext = Buffer.from(msg)
+  const currentBlock = await rpc.getBlockNumber()
+  const targetBlock = BigInt(currentBlock + 5)
 
-  // Encode the uint256 value
-  const encoder = new SolidityEncoder();
-  const msgBytes = encoder.encodeUint256(msg);
-  const encodedMessage = getBytes(msgBytes);
+  console.log(`Encrypting for block ${targetBlock} (current: ${currentBlock})`)
+  const ciphertext = await blocklock.encrypt(plaintext, targetBlock)
 
-  // Encrypt the encoded message
-  const blocklockjs = new Blocklock(wallet, "blocklockSender contract address");
-  const ciphertext = blocklockjs.encrypt(encodedMessage, blockHeight);
+  // User contract
+  const mockBlocklockReceiver = MockBlocklockReceiver__factory.connect("user blocklcok receiver contract address", wallet);
 
   // Generate the timelock encryption condition bytes string
-  const conditionBytes = encodeCondition(blockHeight);
-  const callbackGasLimit = 400_00;
+  const conditionBytes = encodeCondition(targetBlock);
+  // Amount of gas users callback function is expected to consume, i.e., the function that will be called with the decryption key
+  const callbackGasLimit = 500_000;
+
+  // Compute the request price to pay for the direct funding request
+  const requestPrice = await blocklock.calculateRequestPriceNative(callbackGasLimit);
 
   // Call `createTimelockRequestWithDirectFunding` on the user's contract 
   // for a direct or ad hoc funding request with the following parameters:
@@ -96,7 +109,11 @@ async function main() {
   // TypesLib.Ciphertext calldata encryptedData
   const tx = await mockBlocklockReceiver
     .connect(wallet)
-    .createTimelockRequestWithDirectFunding(callbackGasLimit, conditionBytes, encodeCiphertextToSolidity(ciphertext));
+    .createTimelockRequestWithDirectFunding(callbackGasLimit, conditionBytes, encodeCiphertextToSolidity(ciphertext), 
+    {value: requestPrice});
+  // Note: for subscription-based funding, 
+  // use createTimelockRequestWithSubscription instead.
+
   const receipt = await tx.wait(1);
 
   if (!receipt) {
@@ -114,30 +131,58 @@ main().catch((error) => {
 #### How It Works
 1. Encoding and Encryption:
 
-    * Use the SolidityEncoder to encode Solidity-compatible data types.
-    * Encrypt the encoded message and specify the decryption chain height.
-    * Generate the condition bytes string
+* Use blocklock-js to:
 
-2. On-Chain Interaction:
+  * Create a provider and signer using Wallet and NonceManager.
 
-    * Call the appropriate function in the user contract with the encrypted data and the chain height used during off-chain encryption. In this example, the `createTimelockRequestWithDirectFunding` function is called, which calls the [BlocklockSender](https://github.com/randa-mu/blocklock-solidity/blob/main/src/blocklock/BlocklockSender.sol) contract to create an on-chain timelock request with the encrypted data and condition (represented as bytes to support different condition types) for decryption, using the direct funding method. The `BlocklockSender` contract then stores the encrypted data, and generates a unique request ID. The `BlocklockSender` contract also supports a subscription funding method. To make a request via that is paid for via a funded subscription account, the `createTimelockRequestWithSubscription` function in the [example](https://github.com/randa-mu/blocklock-solidity/blob/main/src/mocks/MockBlocklockReceiver.sol) smart contract code can be called.
+  * Initialize a Blocklock instance for your target network (e.g., Filecoin mainnet).
 
-3. Decryption:
+  * Prepare the message to encrypt (e.g., 4 ETH encoded as a uint256).
 
-    * After the specified chain height, the on-chain timelock contract triggers a callback to the user's contract, providing the decryption key. The user's contract can then call the `decrypt` function in the `BlocklockSender` contract to perform on-chain decryption using the provided decryption key.
+  * Select a future block height as the decryption condition.
 
+  ```ts
+  const msg = ethers.utils.parseEther("4");
+  const plaintext = Buffer.from(msg);
+  const currentBlock = await rpc.getBlockNumber();
+  const targetBlock = BigInt(currentBlock + 5);
 
-#### Supported Data Types
-The library supports encoding and encryption of the following Solidity-compatible data types:
+  const ciphertext = await blocklock.encrypt(plaintext, targetBlock);
+  const conditionBytes = encodeCondition(targetBlock);
+  ```
 
-* uint256
-* int256
-* address
-* string
-* bytes
-* bytes32
+2. On-Chain Interaction:  
 
-Use the `SolidityEncoder` to encode any of these types before encryption.
+    * Use your own smart contract (e.g., `MockBlocklockReceiver`) to create a timelock encryption request.
+    * Call `createTimelockRequestWithDirectFunding`, which:
+
+      * Stores the encrypted data (Ciphertext) and decryption condition on-chain via the `BlocklockSender` contract.
+
+      * Funds the request by paying the `requestPrice` via the transaction.
+
+      * Generates a unique request ID.Call the appropriate function in the user contract with the encrypted data and the chain height used during off-chain encryption. 
+
+      ```ts
+      const callbackGasLimit = 500_000;
+      
+      const requestPrice = await blocklock.calculateRequestPriceNative(callbackGasLimit);
+
+      await mockBlocklockReceiver.createTimelockRequestWithDirectFunding(
+        callbackGasLimit,
+        conditionBytes,
+        encodeCiphertextToSolidity(ciphertext),
+        {value: requestPrice}
+      );
+      ```
+
+3. Automatic Decryption and Callback:
+  * Once the specified condition is met (e.g., target block is mined):
+
+    * The `BlocklockSender` contract receives the decryption key from the dcipher Threshold Network.
+
+    * It automatically triggers a callback to the users contract with the key.
+
+    * The users contract can optionally call decrypt to recover the original message on-chain.
 
 
 ### Common Errors
