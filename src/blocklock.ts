@@ -167,12 +167,14 @@ export class Blocklock {
      */
     async fetchBlocklockStatus(requestId: bigint): Promise<BlocklockStatus> {
         const {condition, ciphertext, decryptionKey} = await this.blocklockSender.getRequest.staticCall(requestId)
+        const isPending = await this.blocklockSender.isInFlight.staticCall(requestId)
 
         return {
             id: requestId,
             blockHeight: decodeCondition(condition),
             decryptionKey: getBytes(decryptionKey),
             ciphertext: parseSolidityCiphertext(ciphertext),
+            pending: isPending
         }
     }
     
@@ -284,4 +286,5 @@ export type BlocklockRequest = {
 
 export type BlocklockStatus = BlocklockRequest & {
     decryptionKey: Uint8Array,
+    pending: boolean,
 }
