@@ -61,22 +61,36 @@ export class Blocklock {
         const conditionBytes = encodeCondition(blockHeight);
 
         // 1. Estimate request price using the selected txGasPrice
-        const feeData = await this.signer.provider.getFeeData();
+        // with chain ID and fee data
+        const feeData = await this.signer.provider!.getFeeData();
 
-        const requestPrice = await this.calculateRequestPriceNative(callbackGasLimit);
+        // feeData.maxFeePerGas: Max total gas price we're willing to pay (base + priority), used in EIP-1559
+        const maxFeePerGas = feeData.maxFeePerGas!;
 
-        // 2. Apply buffer e.g. 100% = 2x total
+        // feeData.maxPriorityFeePerGas: Tip to incentivize validators (goes directly to them)
+        const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas!;
+
+        // 2. Get network gas price
+        const txGasPrice = (maxFeePerGas + maxPriorityFeePerGas) * 10n;
+
+        // 3. Estimate request price using the network txGasPrice
+        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
+            callbackGasLimit,
+            txGasPrice
+        );
+
+        // 4. Apply buffer e.g. 100% = 2x total
         const valueToSend = requestPrice + ((requestPrice * this.networkConfig.gasBufferPercent) / 100n);
 
-        // 3. Estimate gas
+        // 4. Estimate gas
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
             callbackGasLimit,
             conditionBytes,
             ciphertext,
             {
                 value: valueToSend,
-                maxFeePerGas: feeData.maxFeePerGas,
-                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+                maxFeePerGas: maxFeePerGas,
+                maxPriorityFeePerGas: maxPriorityFeePerGas,
                 gasLimit: this.networkConfig.gasLimit,
             }
         );
@@ -89,8 +103,8 @@ export class Blocklock {
             {
                 value: valueToSend,
                 gasLimit: estimatedGas,
-                maxFeePerGas: feeData.maxFeePerGas,
-                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+                maxFeePerGas: maxFeePerGas,
+                maxPriorityFeePerGas: maxPriorityFeePerGas,
             }
         );
 
