@@ -86,7 +86,7 @@ export const BASE_SEPOLIA: NetworkConfig = {
     gasLimit: 100_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 100n,
+    gasBufferPercent: 200n,
     callbackGasLimitDefault: 1_000_000n,
     gasMultiplierDefault: 10n,
 }
@@ -110,7 +110,7 @@ export const POLYGON_POS: NetworkConfig = {
     gasLimit: 100_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 100n,
+    gasBufferPercent: 200n,
     callbackGasLimitDefault: 1_000_000n,
     gasMultiplierDefault: 10n,
 }
@@ -134,7 +134,7 @@ export const FURNACE: NetworkConfig = {
     gasLimit: 1_000_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 100n,
+    gasBufferPercent: 200n,
     callbackGasLimitDefault: 1_000_000n,
     gasMultiplierDefault: 10n,
 }
@@ -158,7 +158,7 @@ export const AVALANCHE_C_CHAIN: NetworkConfig = {
     gasLimit: 100_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 100n,
+    gasBufferPercent: 200n,
     callbackGasLimitDefault: 1_000_000n,
     gasMultiplierDefault: 10n,
 }
@@ -182,7 +182,7 @@ export const OPTIMISM_SEPOLIA: NetworkConfig = {
     gasLimit: 100_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 100n,
+    gasBufferPercent: 200n,
     callbackGasLimitDefault: 1_000_000n,
     gasMultiplierDefault: 10n,
 }
@@ -206,7 +206,7 @@ export const ARBITRUM_SEPOLIA: NetworkConfig = {
     gasLimit: 100_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 100n,
+    gasBufferPercent: 200n,
     callbackGasLimitDefault: 1_000_000n,
     gasMultiplierDefault: 10n,
 }
@@ -230,7 +230,7 @@ export const SEI_TESTNET: NetworkConfig = {
     gasLimit: 100_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 100n,
+    gasBufferPercent: 200n,
     callbackGasLimitDefault: 1_000_000n,
     gasMultiplierDefault: 10n,
 }
