@@ -66,7 +66,7 @@ export class Blocklock {
         const requestPrice = await this.calculateRequestPriceNative(callbackGasLimit);
 
         // 2. Apply buffer e.g. 100% = 2x total
-        const valueToSend = requestPrice + (requestPrice * this.networkConfig.gasBufferPercent) / 100n;
+        const valueToSend = requestPrice + ((requestPrice * this.networkConfig.gasBufferPercent) / 100n);
 
         // 3. Estimate gas
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
