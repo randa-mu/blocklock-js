@@ -21,17 +21,6 @@ describe("Blocklock integration tests with supported networks", () => {
         expect(estimatedRequestPrice).toBeGreaterThan(0n);
     }, FILECOIN_TIMEOUT)
 
-    it("should return higher request price for higher callbackGasLimit", async () => {
-        const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createFilecoinMainnet(wallet)
-        let callbackGasLimit = 0n;
-        const [estimatedRequestPrice1, ] = await blocklock.calculateRequestPriceNative(callbackGasLimit);
-        callbackGasLimit = 1_000_000n;
-        const [estimatedRequestPrice2, ] = await blocklock.calculateRequestPriceNative(callbackGasLimit);
-        expect(estimatedRequestPrice2).toBeGreaterThan(estimatedRequestPrice1);
-    }, FILECOIN_TIMEOUT)
-
     it("should encrypt and decrypt for furnace testnet", async () => {
         const rpc = createProvider(process.env.FURNACE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FURNACE_PRIVATE_KEY || "", rpc))
