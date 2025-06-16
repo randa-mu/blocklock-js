@@ -17,23 +17,21 @@ describe("Blocklock integration tests with supported networks", () => {
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFilecoinMainnet(wallet)
         const callbackGasLimit = 0n;
-        const estimatedRequestPrice = await blocklock.calculateRequestPriceNative(callbackGasLimit);
+        const [estimatedRequestPrice, ] = await blocklock.calculateRequestPriceNative(callbackGasLimit);
         expect(estimatedRequestPrice).toBeGreaterThan(0n);
     }, FILECOIN_TIMEOUT)
 
-    it("should return higher request price for non-zero callbackGasLimit", async () => {
+    it("should return higher request price for higher callbackGasLimit", async () => {
         const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFilecoinMainnet(wallet)
         let callbackGasLimit = 0n;
-        const estimatedRequestPriceForZeroCallback = await blocklock.calculateRequestPriceNative(callbackGasLimit);
-        callbackGasLimit = 500_000n;
-        const estimatedRequestPriceForNonZeroCallback = await blocklock.calculateRequestPriceNative(callbackGasLimit);
-        expect(estimatedRequestPriceForNonZeroCallback).toBeGreaterThan(estimatedRequestPriceForZeroCallback);
+        const [estimatedRequestPrice1, ] = await blocklock.calculateRequestPriceNative(callbackGasLimit);
+        callbackGasLimit = 1_000_000n;
+        const [estimatedRequestPrice2, ] = await blocklock.calculateRequestPriceNative(callbackGasLimit);
+        expect(estimatedRequestPrice2).toBeGreaterThan(estimatedRequestPrice1);
     }, FILECOIN_TIMEOUT)
 
-    // todo agent is not fulfilling any requests and test hits timeout. Not sure which one to look at in argo. 
-    // We'll need a central log for multi-party agent
     it("should encrypt and decrypt for furnace testnet", async () => {
         const rpc = createProvider(process.env.FURNACE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FURNACE_PRIVATE_KEY || "", rpc))
@@ -41,28 +39,6 @@ describe("Blocklock integration tests with supported networks", () => {
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
-    // filecoin calibnet is very slow
-    // the test can take up to 260s
-    // todo agent is not fulfilling any requests and test hits timeout. Not sure which one to look at in argo. 
-    // We'll need a central log for multi-party agent
-    it("should encrypt and decrypt for filecoin calibnet", async () => {
-        const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createFilecoinCalibnet(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, FILECOIN_TIMEOUT)
-
-    // todo agent is not fulfilling any requests and test hits timeout. Not sure which one to look at in argo. 
-    // We'll need a central log for multi-party agent
-    it("should encrypt and decrypt for filecoin mainnet", async () => {
-        const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createFilecoinMainnet(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, FILECOIN_TIMEOUT)
-
-    // todo agent is not fulfilling any requests and test hits timeout. Not sure which one to look at in argo. 
-    // We'll need a central log for multi-party agent
     it("should encrypt and decrypt for polygon pos", async () => {
         const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
@@ -70,14 +46,28 @@ describe("Blocklock integration tests with supported networks", () => {
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
-    // todo agent is not fulfilling any requests and test hits timeout. Not sure which one to look at in argo. 
-    // We'll need a central log for multi-party agent
     it("should encrypt and decrypt for base sepolia", async () => {
         const rpc = createProvider(process.env.BASE_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createBaseSepolia(wallet)
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
+
+    it("should encrypt and decrypt for filecoin mainnet", async () => {
+        const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createFilecoinMainnet(wallet)
+        await runEncryptionTest(rpc, blocklock)
+    }, FILECOIN_TIMEOUT)
+
+    // filecoin calibnet is very slow
+    // the test can take up to 260s
+    it("should encrypt and decrypt for filecoin calibnet", async () => {
+        const rpc = createProvider(process.env.FILECOIN_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createFilecoinCalibnet(wallet)
+        await runEncryptionTest(rpc, blocklock)
+    }, FILECOIN_TIMEOUT)
 
     // it("should encrypt and decrypt for avalanche c chain", async () => {
     //     const rpc = createProvider(process.env.AVALANCHE_C_CHAIN_RPC_URL || "")

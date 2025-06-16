@@ -51,8 +51,6 @@ export class Blocklock {
         blockHeight: bigint,
         ciphertext: TypesLib.CiphertextStruct,
         callbackGasLimit: bigint = this.networkConfig.callbackGasLimitDefault,
-        // This variable is not required. The provider will use current network gas price in calculateRequestPriceNative
-        // gasMultiplier: bigint = this.networkConfig.gasMultiplierDefault, 
     ): Promise<bigint> {
         if (this.signer.provider == null) {
             throw new Error("you must configure an RPC provider")
@@ -61,23 +59,35 @@ export class Blocklock {
         const conditionBytes = encodeCondition(blockHeight);
 
         // 1. Estimate request price using the selected txGasPrice
-        const feeData = await this.signer.provider.getFeeData();
+        // with chain ID and fee data
+        const feeData = await this.signer.provider!.getFeeData();
 
-        const requestPrice = await this.calculateRequestPriceNative(callbackGasLimit);
+        // feeData.maxFeePerGas: Max total gas price we're willing to pay (base + priority), used in EIP-1559
+        const maxFeePerGas = feeData.maxFeePerGas!;
 
-        // 2. Apply buffer e.g. 100% = 2x total
+        // feeData.maxPriorityFeePerGas: Tip to incentivize validators (goes directly to them)
+        const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas!;
+
+        // 2. Get network gas price
+        const txGasPrice = (maxFeePerGas + maxPriorityFeePerGas) * 10n;
+
+        // 3. Estimate request price using the network txGasPrice
+        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
+            callbackGasLimit,
+            txGasPrice
+        );
+
+        // 4. Apply buffer e.g. 100% = 2x total
         const valueToSend = requestPrice + (requestPrice * this.networkConfig.gasBufferPercent) / 100n;
 
-        // 3. Estimate gas
+        // 5. Estimate gas
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
             callbackGasLimit,
             conditionBytes,
             ciphertext,
             {
                 value: valueToSend,
-                maxFeePerGas: feeData.maxFeePerGas,
-                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
-                gasLimit: this.networkConfig.gasLimit,
+                gasPrice: txGasPrice,
             }
         );
 
@@ -88,9 +98,8 @@ export class Blocklock {
             ciphertext,
             {
                 value: valueToSend,
+                gasPrice: txGasPrice,
                 gasLimit: estimatedGas,
-                maxFeePerGas: feeData.maxFeePerGas,
-                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
             }
         );
 
@@ -113,11 +122,32 @@ export class Blocklock {
     /**
      * Calculates the request price for a blocklock request given the callbackGasLimit.
      * @param callbackGasLimit The callbackGasLimit to use when fulfilling the request with a decryption key.
-     * @returns The estimated request price
+     * @returns The estimated request price and the transaction gas price used
      */
-    async calculateRequestPriceNative(callbackGasLimit: bigint): Promise<bigint> {
-        const requestPrice = await this.blocklockSender.calculateRequestPriceNative(callbackGasLimit)
-        return requestPrice;
+    async calculateRequestPriceNative(callbackGasLimit: bigint): Promise<[bigint,bigint]> {
+        // 1. Estimate request price using the selected txGasPrice
+        // with chain ID and fee data
+        const feeData = await this.signer.provider!.getFeeData();
+
+        // feeData.maxFeePerGas: Max total gas price we're willing to pay (base + priority), used in EIP-1559
+        const maxFeePerGas = feeData.maxFeePerGas!;
+
+        // feeData.maxPriorityFeePerGas: Tip to incentivize validators (goes directly to them)
+        const maxPriorityFeePerGas = feeData.maxPriorityFeePerGas!;
+
+        // 2. Get network gas price
+        const txGasPrice = (maxFeePerGas + maxPriorityFeePerGas) * 10n;
+
+        // 3. Estimate request price using the network txGasPrice
+        const requestPrice = await this.blocklockSender.estimateRequestPriceNative(
+            callbackGasLimit,
+            txGasPrice
+        );
+
+        // 4. Apply buffer e.g. 100% = 2x total
+        const valueToSend = requestPrice + (requestPrice * this.networkConfig.gasBufferPercent) / 100n;
+
+        return [valueToSend, txGasPrice];
     }
 
     /**

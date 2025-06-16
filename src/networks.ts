@@ -30,7 +30,7 @@ export const FILECOIN_CALIBNET: NetworkConfig = {
         expand_fn: "xmd",
         dsts: {
             H1_G1: encodeBytes(`BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x000000000000000000000000000000000000000000000000000000000004cb2f_`),
-            H2: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H2_0x000000000000000000000000000000000000000000000000000000000004cb2f__`),
+            H2: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H2_0x000000000000000000000000000000000000000000000000000000000004cb2f_`),
             H3: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H3_0x000000000000000000000000000000000000000000000000000000000004cb2f_`),
             H4: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H4_0x000000000000000000000000000000000000000000000000000000000004cb2f_`),
         }
@@ -38,7 +38,7 @@ export const FILECOIN_CALIBNET: NetworkConfig = {
     gasLimit: 5_000_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 300n,
+    gasBufferPercent: 400n,
     callbackGasLimitDefault: 444_000_000n,
     gasMultiplierDefault: 50n,
 }
@@ -62,7 +62,7 @@ export const FILECOIN_MAINNET: NetworkConfig = {
     gasLimit: 5_000_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 300n,
+    gasBufferPercent: 400n,
     callbackGasLimitDefault: 444_000_000n,
     gasMultiplierDefault: 50n,
 }
@@ -95,7 +95,7 @@ export const POLYGON_POS: NetworkConfig = {
     name: "polygon_pos",
     chainId: 137n,
     contractAddress: "0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e",
-    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
+    publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
         k: 128,
@@ -143,7 +143,7 @@ export const AVALANCHE_C_CHAIN: NetworkConfig = {
     name: "avalanche_c_chain",
     chainId: 43114n,
     contractAddress: "0xd22302849a87d5B00f13e504581BC086300DA080",
-    publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
+    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
         k: 128,
@@ -167,7 +167,7 @@ export const OPTIMISM_SEPOLIA: NetworkConfig = {
     name: "optimism_sepolia",
     chainId: 11155420n,
     contractAddress: "0xd22302849a87d5B00f13e504581BC086300DA080",
-    publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
+    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
         k: 128,
@@ -191,7 +191,7 @@ export const ARBITRUM_SEPOLIA: NetworkConfig = {
     name: "arbitrum_sepolia",
     chainId: 421614n,
     contractAddress: "0xd22302849a87d5B00f13e504581BC086300DA080",
-    publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
+    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
         k: 128,
@@ -215,7 +215,7 @@ export const SEI_TESTNET: NetworkConfig = {
     name: "sei_testnet",
     chainId: 1328n,
     contractAddress: "0xd22302849a87d5B00f13e504581BC086300DA080",
-    publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
+    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
         k: 128,
