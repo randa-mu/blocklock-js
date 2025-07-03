@@ -71,7 +71,7 @@ export const BASE_SEPOLIA: NetworkConfig = {
     name: "base_sepolia",
     chainId: 84532n,
     contractAddress: "0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e",
-    publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
+    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
         k: 128,
@@ -95,7 +95,7 @@ export const POLYGON_POS: NetworkConfig = {
     name: "polygon_pos",
     chainId: 137n,
     contractAddress: "0x82Fed730CbdeC5A2D8724F2e3b316a70A565e27e",
-    publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
+    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
         k: 128,
@@ -107,11 +107,11 @@ export const POLYGON_POS: NetworkConfig = {
             H4: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H4_0x0000000000000000000000000000000000000000000000000000000000000089_`),
         }
     },
-    gasLimit: 100_000,
+    gasLimit: 10_000,
     maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
     maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
     gasBufferPercent: 100n,
-    callbackGasLimitDefault: 1_000_000n,
+    callbackGasLimitDefault: 100_000n,
     gasMultiplierDefault: 10n,
 }
 
