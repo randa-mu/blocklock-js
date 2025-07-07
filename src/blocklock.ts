@@ -15,7 +15,6 @@ import {
     BASE_SEPOLIA,
     FILECOIN_CALIBNET,
     FILECOIN_MAINNET,
-    FURNACE,
     OPTIMISM_SEPOLIA,
     POLYGON_POS, SEI_TESTNET
 } from "./networks"
@@ -276,10 +275,6 @@ export class Blocklock {
 
     static createFilecoinCalibnet(rpc: Signer | Provider): Blocklock {
         return new Blocklock(rpc, FILECOIN_CALIBNET)
-    }
-
-    static createFurnace(rpc: Signer | Provider): Blocklock {
-        return new Blocklock(rpc, FURNACE)
     }
 
     static createBaseSepolia(rpc: Signer | Provider): Blocklock {

@@ -21,14 +21,6 @@ describe("Blocklock integration tests with supported networks", () => {
         expect(estimatedRequestPrice).toBeGreaterThan(0n);
     }, FILECOIN_TIMEOUT)
 
-    // skipped because furnace is down right now booo
-    it.skip("should encrypt and decrypt for furnace testnet", async () => {
-        const rpc = createProvider(process.env.FURNACE_RPC_URL || "")
-        const wallet = new NonceManager(new Wallet(process.env.FURNACE_PRIVATE_KEY || "", rpc))
-        const blocklock = Blocklock.createFurnace(wallet)
-        await runEncryptionTest(rpc, blocklock)
-    }, TIMEOUT)
-
     it("should encrypt and decrypt for polygon pos", async () => {
         const rpc = createProvider(process.env.POLYGON_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.POLYGON_PRIVATE_KEY || "", rpc))
