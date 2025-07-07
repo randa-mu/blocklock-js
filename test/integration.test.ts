@@ -73,7 +73,8 @@ describe("Blocklock integration tests with supported networks", () => {
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
-    it("should encrypt and decrypt for sei testnet", async () => {
+    // skipping temporarily because there's some weirdness with their RPC
+    it.skip("should encrypt and decrypt for sei testnet", async () => {
         const rpc = createProvider(process.env.SEI_TESTNET_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.SEI_TESTNET_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createSeiTestnet(wallet)
