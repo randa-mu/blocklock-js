@@ -115,30 +115,6 @@ export const POLYGON_POS: NetworkConfig = {
     gasMultiplierDefault: 10n,
 }
 
-export const FURNACE: NetworkConfig = {
-    name: "furnace",
-    chainId: 64630n,
-    contractAddress: "0xEd925F96790F11678972b0F2c250498D782DDec9",
-    publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
-    ibeOpts: {
-        hash: keccak_256,
-        k: 128,
-        expand_fn: "xmd",
-        dsts: {
-            H1_G1: encodeBytes(`BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x000000000000000000000000000000000000000000000000000000000000fc76_`),
-            H2: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H2_0x000000000000000000000000000000000000000000000000000000000000fc76_`),
-            H3: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H3_0x000000000000000000000000000000000000000000000000000000000000fc76_`),
-            H4: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H4_0x000000000000000000000000000000000000000000000000000000000000fc76_`),
-        }
-    },
-    gasLimit: 1_000_000,
-    maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
-    gasBufferPercent: 100n,
-    callbackGasLimitDefault: 1_000_000n,
-    gasMultiplierDefault: 10n,
-}
-
 export const AVALANCHE_C_CHAIN: NetworkConfig = {
     name: "avalanche_c_chain",
     chainId: 43114n,
@@ -235,7 +211,7 @@ export const SEI_TESTNET: NetworkConfig = {
     gasMultiplierDefault: 10n,
 }
 
-export const SUPPORTED_TESTNETS = [FILECOIN_CALIBNET, BASE_SEPOLIA, FURNACE, AVALANCHE_C_CHAIN, OPTIMISM_SEPOLIA, ARBITRUM_SEPOLIA, SEI_TESTNET]
+export const SUPPORTED_TESTNETS = [FILECOIN_CALIBNET, BASE_SEPOLIA, AVALANCHE_C_CHAIN, OPTIMISM_SEPOLIA, ARBITRUM_SEPOLIA, SEI_TESTNET]
 export const SUPPORTED_MAINNETS = [FILECOIN_MAINNET, POLYGON_POS]
 
 export function configForChainId(chainId: bigint | number | string): NetworkConfig {
