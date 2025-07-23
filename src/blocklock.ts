@@ -158,7 +158,7 @@ export class Blocklock {
         const request = await this.blocklockSender.getRequest.staticCall(requestId)
         const blockHeight = decodeCondition(request.condition)
         return {
-            id: request.decryptionRequestID,
+            id: request.decryptionRequestId,
             blockHeight: blockHeight,
             ciphertext: parseSolidityCiphertext(request.ciphertext)
         }
@@ -174,7 +174,7 @@ export class Blocklock {
 
         return new Map(Array.from(
             requests.map((event) => {
-                const id = event.args.requestID
+                const id = event.args.requestId
                 const blockHeight = decodeCondition(event.args.condition)
 
                 return [id, {
