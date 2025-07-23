@@ -23,7 +23,7 @@ export const FILECOIN_CALIBNET: NetworkConfig = {
     name: "filecoin_calibnet",
     chainId: 314159n,
     contractAddress: "0xF00aB3B64c81b6Ce51f8220EB2bFaa2D469cf702",
-    publicKey: BLOCKLOCK_TESTNET_PUBLIC_KEY,
+    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
     ibeOpts: {
         hash: keccak_256,
         k: 128,
