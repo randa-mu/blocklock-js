@@ -42,7 +42,6 @@ export class Blocklock {
      * @param blockHeight time at which the decryption should key should be released
      * @param ciphertext encrypted message to store on chain
      * @param callbackGasLimit the maximum amount of gas the dcipher network should spend on the callback
-     * @param gasMultiplier a multiplier to use on the gas price for the chain
      * @returns blocklock request id as a string
      */
     async requestBlocklock(
