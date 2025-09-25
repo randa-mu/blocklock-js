@@ -13,6 +13,7 @@ import {
     ARBITRUM_SEPOLIA,
     AVALANCHE_C_CHAIN,
     BASE_SEPOLIA,
+    BASE_MAINNET,
     FILECOIN_CALIBNET,
     FILECOIN_MAINNET,
     OPTIMISM_SEPOLIA,
@@ -279,6 +280,10 @@ export class Blocklock {
 
     static createBaseSepolia(rpc: Signer | Provider): Blocklock {
         return new Blocklock(rpc, BASE_SEPOLIA)
+    }
+
+    static createBaseMainnet(rpc: Signer | Provider): Blocklock {
+        return new Blocklock(rpc, BASE_MAINNET)
     }
 
     static createPolygonPos(rpc: Signer | Provider): Blocklock {
