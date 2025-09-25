@@ -91,6 +91,30 @@ export const BASE_SEPOLIA: NetworkConfig = {
     gasMultiplierDefault: 10n,
 }
 
+export const BASE_MAINNET: NetworkConfig = {
+    name: "base_mainnet",
+    chainId: 8453n,
+    contractAddress: "0x8E7D2c0c968B5aCA6f7ce2ffaA76AEcf61235b9F",
+    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
+    ibeOpts: {
+        hash: keccak_256,
+        k: 128,
+        expand_fn: "xmd",
+        dsts: {
+            H1_G1: encodeBytes(`BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x0000000000000000000000000000000000000000000000000000000000002105_`),
+            H2: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H2_0x0000000000000000000000000000000000000000000000000000000000002105_`),
+            H3: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H3_0x0000000000000000000000000000000000000000000000000000000000002105_`),
+            H4: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H4_0x0000000000000000000000000000000000000000000000000000000000002105_`),
+        }
+    },
+    gasLimit: 100_000,
+    maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
+    maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
+    gasBufferPercent: 100n,
+    callbackGasLimitDefault: 1_000_000n,
+    gasMultiplierDefault: 10n,
+}
+
 export const POLYGON_POS: NetworkConfig = {
     name: "polygon_pos",
     chainId: 137n,

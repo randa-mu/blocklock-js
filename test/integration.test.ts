@@ -35,6 +35,13 @@ describe("Blocklock integration tests with supported networks", () => {
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
+    it.skip("should encrypt and decrypt for base mainnet", async () => {
+        const rpc = createProvider(process.env.BASE_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.BASE_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createBaseMainnet(wallet)
+        await runEncryptionTest(rpc, blocklock)
+    }, TIMEOUT)
+
     it.skip("should encrypt and decrypt for filecoin mainnet", async () => {
         const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
