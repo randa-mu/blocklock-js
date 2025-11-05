@@ -12,7 +12,27 @@ describe("Blocklock integration tests with supported networks", () => {
         dotenv.config()
     })
 
+    it("should return non-zero request price to cover BLS operations when callbackGasLimit and bufferPercent are both zero", async () => {
+        const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createFilecoinMainnet(wallet)
+        const callbackGasLimit = 0n;
+        const bufferPercent = 0n;
+        const [estimatedRequestPrice, ] = await blocklock.calculateRequestPriceNative(callbackGasLimit, bufferPercent);
+        expect(estimatedRequestPrice).toBeGreaterThan(0n);
+    }, FILECOIN_TIMEOUT)
+
     it("should return non-zero request price to cover BLS operations when callbackGasLimit is zero", async () => {
+        const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createFilecoinMainnet(wallet)
+        const callbackGasLimit = 0n;
+        const bufferPercent = 100n;
+        const [estimatedRequestPrice, ] = await blocklock.calculateRequestPriceNative(callbackGasLimit, bufferPercent);
+        expect(estimatedRequestPrice).toBeGreaterThan(0n);
+    }, FILECOIN_TIMEOUT)
+
+    it("should return non-zero request price to cover BLS operations when callbackGasLimit is zero and bufferPercent is not specified", async () => {
         const rpc = createProvider(process.env.FILECOIN_MAINNET_RPC_URL || "")
         const wallet = new NonceManager(new Wallet(process.env.FILECOIN_MAINNET_PRIVATE_KEY || "", rpc))
         const blocklock = Blocklock.createFilecoinMainnet(wallet)
