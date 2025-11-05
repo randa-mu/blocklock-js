@@ -50,6 +50,7 @@ export class Blocklock {
         blockHeight: bigint,
         ciphertext: TypesLib.CiphertextStruct,
         callbackGasLimit: bigint = this.networkConfig.callbackGasLimitDefault,
+        bufferPercent?: bigint
     ): Promise<bigint> {
         if (this.signer.provider == null) {
             throw new Error("you must configure an RPC provider")
@@ -75,11 +76,14 @@ export class Blocklock {
             callbackGasLimit,
             txGasPrice
         );
+    
+        // 4. Determine buffer (use provided one or fallback)
+        const effectiveBuffer = bufferPercent ?? this.networkConfig.gasBufferPercent;
 
-        // 4. Apply buffer e.g. 100% = 2x total
-        const valueToSend = requestPrice + (requestPrice * this.networkConfig.gasBufferPercent) / 100n;
+        // 5. Apply buffer e.g. 100% = 2x total
+        const valueToSend = requestPrice + (requestPrice * effectiveBuffer) / 100n;
 
-        // 5. Estimate gas
+        // 6. Estimate gas
         const estimatedGas = await this.blocklockSender.requestBlocklock.estimateGas(
             callbackGasLimit,
             conditionBytes,
@@ -90,7 +94,7 @@ export class Blocklock {
             }
         );
 
-        // 6. Send transaction
+        // 7. Send transaction
         const tx = await this.blocklockSender.requestBlocklock(
             callbackGasLimit,
             conditionBytes,
@@ -107,7 +111,7 @@ export class Blocklock {
             throw new Error("Transaction was not mined");
         }
 
-        // 7. Extract request ID from log
+        // 8. Extract request ID from log
         const [requestID] = extractSingleLog(
             iface,
             receipt,
@@ -121,9 +125,10 @@ export class Blocklock {
     /**
      * Calculates the request price for a blocklock request given the callbackGasLimit.
      * @param callbackGasLimit The callbackGasLimit to use when fulfilling the request with a decryption key.
+     * @param bufferPercent Optional buffer percent to apply on top of the estimated request price. If not provided, the default from the network config will be used.
      * @returns The estimated request price and the transaction gas price used
      */
-    async calculateRequestPriceNative(callbackGasLimit: bigint): Promise<[bigint,bigint]> {
+    async calculateRequestPriceNative(callbackGasLimit: bigint, bufferPercent?: bigint): Promise<[bigint,bigint]> {
         // 1. Estimate request price using the selected txGasPrice
         // with chain ID and fee data
         const feeData = await this.signer.provider!.getFeeData();
@@ -143,8 +148,11 @@ export class Blocklock {
             txGasPrice
         );
 
-        // 4. Apply buffer e.g. 100% = 2x total
-        const valueToSend = requestPrice + (requestPrice * this.networkConfig.gasBufferPercent) / 100n;
+        // 4. Determine buffer (use provided one or fallback)
+        const effectiveBuffer = bufferPercent ?? this.networkConfig.gasBufferPercent;
+
+        // 5. Apply buffer e.g. 100% = 2x total
+        const valueToSend = requestPrice + (requestPrice * effectiveBuffer) / 100n;
 
         return [valueToSend, txGasPrice];
     }
