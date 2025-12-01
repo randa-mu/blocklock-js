@@ -187,6 +187,30 @@ export const OPTIMISM_SEPOLIA: NetworkConfig = {
     gasMultiplierDefault: 10n,
 }
 
+export const ARBITRUM_MAINNET: NetworkConfig = {
+    name: "arbitrum_mainnet",
+    chainId: 42161n,
+    contractAddress: "0x78ebbbc39f7244bE80C76f11248f5a2645978e25",
+    publicKey: BLOCKLOCK_MAINNET_PUBLIC_KEY,
+    ibeOpts: {
+        hash: keccak_256,
+        k: 128,
+        expand_fn: "xmd",
+        dsts: {
+            H1_G1: encodeBytes(`BLOCKLOCK_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_0x000000000000000000000000000000000000000000000000000000000000a4b1_`),
+            H2: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H2_0x000000000000000000000000000000000000000000000000000000000000a4b1_`),
+            H3: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H3_0x000000000000000000000000000000000000000000000000000000000000a4b1_`),
+            H4: encodeBytes(`BLOCKLOCK_BN254_XMD:KECCAK-256_H4_0x000000000000000000000000000000000000000000000000000000000000a4b1_`),
+        }
+    },
+    gasLimit: 100_000,
+    maxFeePerGas: ethers.parseUnits("0.2", "gwei"),
+    maxPriorityFeePerGas: ethers.parseUnits("0.2", "gwei"),
+    gasBufferPercent: 100n,
+    callbackGasLimitDefault: 1_000_000n,
+    gasMultiplierDefault: 10n,
+}
+
 export const ARBITRUM_SEPOLIA: NetworkConfig = {
     name: "arbitrum_sepolia",
     chainId: 421614n,
@@ -236,7 +260,7 @@ export const SEI_TESTNET: NetworkConfig = {
 }
 
 export const SUPPORTED_TESTNETS = [FILECOIN_CALIBNET, BASE_SEPOLIA, AVALANCHE_C_CHAIN, OPTIMISM_SEPOLIA, ARBITRUM_SEPOLIA, SEI_TESTNET]
-export const SUPPORTED_MAINNETS = [FILECOIN_MAINNET, POLYGON_POS]
+export const SUPPORTED_MAINNETS = [FILECOIN_MAINNET, POLYGON_POS, ARBITRUM_MAINNET, BASE_MAINNET]
 
 export function configForChainId(chainId: bigint | number | string): NetworkConfig {
     chainId = BigInt(chainId)

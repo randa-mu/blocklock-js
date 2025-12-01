@@ -11,6 +11,7 @@ import {
     configForChainId,
     NetworkConfig,
     ARBITRUM_SEPOLIA,
+    ARBITRUM_MAINNET,
     AVALANCHE_C_CHAIN,
     BASE_SEPOLIA,
     BASE_MAINNET,
@@ -308,6 +309,10 @@ export class Blocklock {
 
     static createArbitrumSepolia(rpc: Signer | Provider): Blocklock {
         return new Blocklock(rpc, ARBITRUM_SEPOLIA)
+    }
+
+    static createArbitrumMainnet(rpc: Signer | Provider): Blocklock {
+        return new Blocklock(rpc, ARBITRUM_MAINNET)
     }
 
     static createSeiTestnet(rpc: Signer | Provider): Blocklock {
