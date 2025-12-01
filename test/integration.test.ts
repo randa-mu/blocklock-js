@@ -100,6 +100,13 @@ describe("Blocklock integration tests with supported networks", () => {
         await runEncryptionTest(rpc, blocklock)
     }, TIMEOUT)
 
+    it.skip("should encrypt and decrypt for arbitrum mainnet", async () => {
+        const rpc = createProvider(process.env.ARBITRUM_MAINNET_RPC_URL || "")
+        const wallet = new NonceManager(new Wallet(process.env.ARBITRUM_MAINNET_PRIVATE_KEY || "", rpc))
+        const blocklock = Blocklock.createArbitrumMainnet(wallet)
+        await runEncryptionTest(rpc, blocklock)
+    }, TIMEOUT)
+
     // skipping temporarily because there's some weirdness with their RPC
     it.skip("should encrypt and decrypt for sei testnet", async () => {
         const rpc = createProvider(process.env.SEI_TESTNET_RPC_URL || "")
