@@ -1,15 +1,15 @@
-import { Buffer as BufferPolyfill } from 'buffer'
+import { Buffer as BufferPolyfill } from "buffer"
 declare let Buffer: typeof BufferPolyfill
 globalThis.Buffer = BufferPolyfill
 
 import * as asn1js from "asn1js"
-import { bn254, htfDefaultsG1, mapToG1 } from './bn254'
-import { xor } from './utils'
-import { Fp, Fp12, Fp2 } from '@noble/curves/abstract/tower'
-import { AffinePoint } from '@noble/curves/abstract/weierstrass'
+import { Fp, Fp12, Fp2 } from "@noble/curves/abstract/tower"
+import { AffinePoint } from "@noble/curves/abstract/weierstrass"
 import { createHasher, expand_message_xmd, expand_message_xof, hash_to_field } from "@noble/curves/abstract/hash-to-curve"
 import { CHash } from "@noble/curves/abstract/utils"
 import { keccak_256 } from "@noble/hashes/sha3"
+import { bn254, htfDefaultsG1, mapToG1 } from "./bn254"
+import { xor } from "./utils"
 
 export type G1 = AffinePoint<Fp>
 export type G2 = AffinePoint<Fp2>
@@ -25,7 +25,7 @@ export interface Ciphertext {
 export type IbeOpts = {
     hash: CHash,                // hash function
     k: number,                  // k-bit collision resistance of hash
-    expand_fn: 'xmd' | 'xof',   // "xmd": expand_message_xmd, "xof": expand_message_xof, see RFC9380, Section 5.3.
+    expand_fn: "xmd" | "xof",   // "xmd": expand_message_xmd, "xof": expand_message_xof, see RFC9380, Section 5.3.
     dsts: DstOpts,
 }
 
@@ -41,12 +41,12 @@ export type DstOpts = {
 export const DEFAULT_OPTS: IbeOpts = {
     hash: keccak_256,
     k: 128,
-    expand_fn: 'xmd',
+    expand_fn: "xmd",
     dsts: {
-        H1_G1: Buffer.from('IBE_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_'),
-        H2: Buffer.from('IBE_BN254_XMD:KECCAK-256_H2_'),
-        H3: Buffer.from('IBE_BN254_XMD:KECCAK-256_H3_'),
-        H4: Buffer.from('IBE_BN254_XMD:KECCAK-256_H4_'),
+        H1_G1: Buffer.from("IBE_BN254G1_XMD:KECCAK-256_SVDW_RO_H1_"),
+        H2: Buffer.from("IBE_BN254_XMD:KECCAK-256_H2_"),
+        H3: Buffer.from("IBE_BN254_XMD:KECCAK-256_H3_"),
+        H4: Buffer.from("IBE_BN254_XMD:KECCAK-256_H4_"),
     }
 }
 
@@ -255,21 +255,21 @@ export function deserializeCiphertext(ct: Uint8Array): Ciphertext {
         throw new Error("invalid ciphertext")
     }
 
-    const V = new Uint8Array(res.result['V'].valueBlock.valueHex)
-    const W = new Uint8Array(res.result['W'].valueBlock.valueHex)
+    const V = new Uint8Array(res.result["V"].valueBlock.valueHex)
+    const W = new Uint8Array(res.result["W"].valueBlock.valueHex)
 
     function bytesToBigInt(bytes: ArrayBuffer) {
         const byteArray = Array.from(new Uint8Array(bytes))
-        const hex: string = byteArray.map(e => e.toString(16).padStart(2, '0')).join('')
-        return BigInt('0x' + hex)
+        const hex: string = byteArray.map(e => e.toString(16).padStart(2, "0")).join("")
+        return BigInt("0x" + hex)
     }
     const x = bn254.fields.Fp2.create({
-        c0: bytesToBigInt(res.result['x'].valueBlock.value[0].valueBlock.valueHex),
-        c1: bytesToBigInt(res.result['x'].valueBlock.value[1].valueBlock.valueHex),
+        c0: bytesToBigInt(res.result["x"].valueBlock.value[0].valueBlock.valueHex),
+        c1: bytesToBigInt(res.result["x"].valueBlock.value[1].valueBlock.valueHex),
     })
     const y = bn254.fields.Fp2.create({
-        c0: bytesToBigInt(res.result['y'].valueBlock.value[0].valueBlock.valueHex),
-        c1: bytesToBigInt(res.result['y'].valueBlock.value[1].valueBlock.valueHex),
+        c0: bytesToBigInt(res.result["y"].valueBlock.value[0].valueBlock.valueHex),
+        c1: bytesToBigInt(res.result["y"].valueBlock.value[1].valueBlock.valueHex),
     })
     const U = { x, y }
 
